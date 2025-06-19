@@ -29,9 +29,19 @@ async def get_index():
     with open("static/index.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read(), status_code=200)
 
+# 앱 시작 시 초기화
+@app.on_event("startup")
+async def startup_event():
+    # 필요한 디렉토리들 생성
+    os.makedirs("./faces", exist_ok=True)
+    os.makedirs("./chats", exist_ok=True)
+    print("Face database directory initialized: ./faces")
+    print("Chat database directory initialized: ./chats")
+
 # 앱 종료 시 카메라 정리
 @app.on_event("shutdown")
 async def shutdown_event():
     # 카메라 리소스 정리
     from .routers.camera import camera_manager
     camera_manager.stop_camera()
+    print("Camera resources cleaned up")

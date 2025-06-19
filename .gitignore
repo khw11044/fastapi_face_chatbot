@@ -1,5 +1,9 @@
+__pycache__/
+*.pyc
+
 .env
 faces
-chat_history.db
-xarm
-xArm_Python_SDK
+chats
+fonts
+model_cache
+

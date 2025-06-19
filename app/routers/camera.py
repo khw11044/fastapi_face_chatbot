@@ -1,14 +1,17 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 import cv2
 import threading
 import time
 from typing import Optional
 
-
-from ..services.face_service import face_service
+from ..services.face_service import enhanced_face_service
 
 router = APIRouter()
+
+class FaceRegistrationRequest(BaseModel):
+    user_id: str
 
 class CameraManager:
     def __init__(self):
@@ -16,6 +19,7 @@ class CameraManager:
         self.is_streaming = False
         self.lock = threading.Lock()
         self.frame_generator = None
+        self.current_frame = None
     
     def start_camera(self, camera_index: int = 0):
         """카메라를 시작합니다."""
@@ -80,9 +84,15 @@ class CameraManager:
                     print("프레임을 읽을 수 없습니다.")
                     break
                 
-                # ✅ 얼굴 탐지 및 바운딩 박스 그리기
+                # 프레임 좌우 반전 (미러 효과)
+                frame = cv2.flip(frame, 1)
+                
+                # 현재 프레임 저장 (얼굴 등록용)
+                self.current_frame = frame.copy()
+                
+                # ✅ 향상된 얼굴 탐지 및 바운딩 박스 그리기
                 try:
-                    frame = face_service.detect_and_draw(frame)
+                    frame = enhanced_face_service.detect_and_draw_with_login(frame)
                 except Exception as e:
                     print(f"얼굴 인식 오류: {e}")
                     # 얼굴 인식에 실패해도 원본 프레임은 전송
@@ -152,3 +162,40 @@ async def camera_status():
         "is_streaming": camera_manager.is_streaming,
         "camera_active": camera_manager.camera is not None and camera_manager.camera.isOpened() if camera_manager.camera else False
     }
+
+@router.get("/auto-login")
+async def get_auto_login_user():
+    """자동 로그인 가능한 사용자 ID를 반환합니다."""
+    try:
+        user_id = enhanced_face_service.get_auto_login_user()
+        if user_id:
+            return {"user_id": user_id, "auto_login": True}
+        else:
+            return {"user_id": None, "auto_login": False}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/register-face")
+async def register_face(request: FaceRegistrationRequest):
+    """현재 탐지된 Unknown 얼굴을 지정된 사용자로 등록합니다."""
+    try:
+        if not camera_manager.is_streaming or camera_manager.current_frame is None:
+            raise HTTPException(status_code=400, detail="카메라가 활성화되지 않았습니다.")
+        
+        success = enhanced_face_service.register_face_for_current_user(
+            camera_manager.current_frame, 
+            request.user_id
+        )
+        
+        if success:
+            return {
+                "message": f"사용자 '{request.user_id}'의 얼굴이 등록되었습니다.",
+                "status": "success"
+            }
+        else:
+            return {
+                "message": "등록할 수 있는 얼굴이 탐지되지 않았습니다.",
+                "status": "failed"
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

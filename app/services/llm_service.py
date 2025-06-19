@@ -1,11 +1,11 @@
 import asyncio
+import os
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import SQLChatMessageHistory
 from langchain.schema.output_parser import StrOutputParser
 from typing import Dict, List
-import os
 from dotenv import load_dotenv
 
 # 프롬프트와 데이터베이스 유틸리티 임포트
@@ -23,8 +23,15 @@ class LLMService:
             openai_api_key=os.getenv("OPENAI_API_KEY")
         )
         
+        # chats 디렉토리 생성
+        self.chats_dir = "./chats"
+        os.makedirs(self.chats_dir, exist_ok=True)
+        
+        # 데이터베이스 경로 설정
+        self.db_path = os.path.join(self.chats_dir, "chat_history.db")
+        
         # 데이터베이스 매니저 초기화
-        self.db_manager = DatabaseManager()
+        self.db_manager = DatabaseManager(self.db_path)
         
         # RAG 체인 초기화
         self.chain = self.init_chain()
@@ -42,7 +49,7 @@ class LLMService:
         return SQLChatMessageHistory(
             table_name='chat_messages',
             session_id=session_id,
-            connection="sqlite:///chat_history.db",
+            connection=f"sqlite:///{self.db_path}",  # 새로운 데이터베이스 경로 사용
         )
     
     async def generate_response(self, user_message: str, session_id: str = "default") -> str:
@@ -53,6 +60,7 @@ class LLMService:
                 self.current_session_id = session_id
             
             print(f"[대화 세션ID]: {self.current_session_id}")
+            print(f"[데이터베이스 경로]: {self.db_path}")
             
             # RunnableWithMessageHistory를 사용한 대화형 RAG 체인
             conversational_rag_chain = RunnableWithMessageHistory(      
@@ -125,3 +133,7 @@ class LLMService:
         except Exception as e:
             print(f"Error getting sessions: {e}")
             return []
+    
+    def get_database_info(self):
+        """데이터베이스 정보를 반환합니다."""
+        return self.db_manager.get_database_info()

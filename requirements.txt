@@ -1,7 +1,17 @@
 fastapi
 uvicorn[standard]
-opencv-python
+
 langchain
 langchain_openai
 langchain_core
 langchain_community
+
+chromadb
+
+opencv-python
+
+huggingface-hub<0.26.0, >=0.15.0
+transformers<5.0.0
+imgbeddings==0.1.0
+facenet-pytorch
+mediapipe
