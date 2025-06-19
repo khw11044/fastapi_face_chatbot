@@ -4,6 +4,7 @@ class ChatBot {
         this.isLoading = false;
         this.currentUserId = null;
         this.sessionId = null;
+        this.autoLoginCheckInterval = null;
         this.initElements();
         this.bindEvents();
         this.init();
@@ -49,22 +50,47 @@ class ChatBot {
         this.setChatDisabled(true);
         // 초기 포커스를 사용자 ID 입력창에
         this.userIdInput.focus();
+        // 자동 로그인 체크 시작
+        this.startAutoLoginCheck();
     }
 
-    // 사용자 로그인
-    async loginUser() {
-        const userId = this.userIdInput.value.trim();
-        
-        if (!userId) {
-            alert('사용자 ID를 입력해주세요.');
-            return;
-        }
-        
-        if (userId.length < 2) {
-            alert('사용자 ID는 2글자 이상이어야 합니다.');
-            return;
-        }
+    // 자동 로그인 체크 시작
+    startAutoLoginCheck() {
+        // 2초마다 자동 로그인 가능한 사용자 확인
+        this.autoLoginCheckInterval = setInterval(async () => {
+            if (!this.currentUserId) {  // 로그인하지 않은 상태에서만 체크
+                await this.checkAutoLogin();
+            }
+        }, 2000);
+    }
 
+    // 자동 로그인 체크 중지
+    stopAutoLoginCheck() {
+        if (this.autoLoginCheckInterval) {
+            clearInterval(this.autoLoginCheckInterval);
+            this.autoLoginCheckInterval = null;
+        }
+    }
+
+    // 자동 로그인 확인
+    async checkAutoLogin() {
+        try {
+            const response = await fetch('/camera/auto-login');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.auto_login && data.user_id) {
+                    await this.autoLogin(data.user_id);
+                }
+            }
+        } catch (error) {
+            console.error('자동 로그인 체크 오류:', error);
+        }
+    }
+
+    // 자동 로그인 실행
+    async autoLogin(userId) {
+        console.log(`자동 로그인 시도: ${userId}`);
+        
         this.currentUserId = userId;
         this.sessionId = `user_${userId}`;
         
@@ -80,9 +106,110 @@ class ChatBot {
         // 이전 대화 기록 불러오기
         await this.loadChatHistory();
         
-        this.addMessage('bot', `안녕하세요 ${userId}님! 저는 로봇 사탕가게 직원입니다. 빨간색 사탕(딸기), 파란 사탕(소다), 노간 사탕(레몬), 오렌지 주스를 판매합니다. 무엇을 주문하시겠어요? 🍭🤖`);
+        // 환영 메시지가 없다면 추가
+        if (this.chatBox.children.length === 0) {
+            this.addMessage('bot', `다시 만나서 반가워요 ${userId}님! 저는 로봇 사탕가게 직원입니다. 오늘은 무엇을 주문하시겠어요? 🍭🤖`);
+        } else {
+            // 기존 대화가 있는 경우 간단한 인사만
+            this.addMessage('bot', `안녕하세요 ${userId}님! 이어서 대화해볼까요? 😊`);
+        }
         
         this.userInput.focus();
+        
+        // 자동 로그인 체크 중지
+        this.stopAutoLoginCheck();
+    }
+
+    // 사용자 로그인 (수동)
+    async loginUser() {
+        const userId = this.userIdInput.value.trim();
+        
+        if (!userId) {
+            alert('사용자 ID를 입력해주세요.');
+            return;
+        }
+        
+        if (userId.length < 2) {
+            alert('사용자 ID는 2글자 이상이어야 합니다.');
+            return;
+        }
+
+        // 얼굴 등록 시도
+        try {
+            const response = await fetch('/camera/register-face', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: userId
+                })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok && data.status === 'success') {
+                console.log('얼굴 등록 성공:', data.message);
+                
+                // 로그인 처리
+                this.currentUserId = userId;
+                this.sessionId = `user_${userId}`;
+                
+                // UI 업데이트
+                this.userIdInput.style.display = 'none';
+                this.loginButton.style.display = 'none';
+                this.currentUserDiv.style.display = 'flex';
+                this.currentUserName.textContent = userId;
+                
+                // 채팅 활성화
+                this.setChatDisabled(false);
+                
+                // 이전 대화 기록 불러오기
+                await this.loadChatHistory();
+                
+                this.addMessage('bot', `안녕하세요 ${userId}님! 얼굴 등록이 완료되었습니다. 다음번부터는 자동으로 로그인됩니다. 저는 로봇 사탕가게 직원입니다. 빨간색 사탕(딸기), 파란 사탕(소다), 노란 사탕(레몬), 오렌지 주스를 판매합니다. 무엇을 주문하시겠어요? 🍭🤖`);
+                
+                this.userInput.focus();
+                
+                // 자동 로그인 체크 중지
+                this.stopAutoLoginCheck();
+                
+            } else {
+                // 얼굴 등록에 실패한 경우, 일반 로그인 진행
+                console.log('얼굴 등록 실패, 일반 로그인 진행:', data.message);
+                await this.performManualLogin(userId);
+            }
+            
+        } catch (error) {
+            console.error('얼굴 등록 오류:', error);
+            // 오류 발생 시에도 일반 로그인 진행
+            await this.performManualLogin(userId);
+        }
+    }
+
+    // 수동 로그인 처리
+    async performManualLogin(userId) {
+        this.currentUserId = userId;
+        this.sessionId = `user_${userId}`;
+        
+        // UI 업데이트
+        this.userIdInput.style.display = 'none';
+        this.loginButton.style.display = 'none';
+        this.currentUserDiv.style.display = 'flex';
+        this.currentUserName.textContent = userId;
+        
+        // 채팅 활성화
+        this.setChatDisabled(false);
+        
+        // 이전 대화 기록 불러오기
+        await this.loadChatHistory();
+        
+        this.addMessage('bot', `안녕하세요 ${userId}님! 저는 로봇 사탕가게 직원입니다. 카메라 앞에서 얼굴을 보여주시면 다음번에 자동 로그인이 가능합니다. 빨간색 사탕(딸기), 파란 사탕(소다), 노간 사탕(레몬), 오렌지 주스를 판매합니다. 무엇을 주문하시겠어요? 🍭🤖`);
+        
+        this.userInput.focus();
+        
+        // 자동 로그인 체크 중지
+        this.stopAutoLoginCheck();
     }
 
     // 사용자 로그아웃
@@ -105,6 +232,9 @@ class ChatBot {
         `;
         
         this.userIdInput.focus();
+        
+        // 자동 로그인 체크 재시작
+        this.startAutoLoginCheck();
     }
 
     // 채팅 활성화/비활성화
@@ -285,7 +415,19 @@ class ChatBot {
             alert('대화 기록 삭제 중 오류가 발생했습니다.');
         }
     }
+
+    // 소멸자 - 페이지 언로드 시 자동 로그인 체크 중지
+    destroy() {
+        this.stopAutoLoginCheck();
+    }
 }
+
+// 페이지 언로드 시 정리
+window.addEventListener('beforeunload', () => {
+    if (window.chatBot) {
+        window.chatBot.destroy();
+    }
+});
 
 // 챗봇 인스턴스 생성 (전역 변수로 노출)
 window.chatBot = new ChatBot();
