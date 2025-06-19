@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 챗봇</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>AI 챗봇 with 얼굴 인식</title>
+    
+    <!-- CSS 파일들 -->
+    <link rel="stylesheet" href="/static/styles/main.css">
+    <link rel="stylesheet" href="/static/styles/streaming.css">
+    <link rel="stylesheet" href="/static/styles/chatbot.css">
 </head>
 <body>
     <div class="container">
@@ -12,7 +16,7 @@
         <div class="camera-section">
             <div class="camera-container">
                 <div class="camera-header">
-                    <h2>실시간 카메라</h2>
+                    <h2>실시간 얼굴 인식 카메라</h2>
                     <div class="camera-controls">
                         <button id="start-camera-btn" class="camera-btn start">시작</button>
                         <button id="stop-camera-btn" class="camera-btn stop">중지</button>
@@ -41,7 +45,7 @@
             <div class="chat-container">
                 <!-- 챗봇 헤더 -->
                 <div class="chat-header">
-                    <h1>AI 챗봇</h1>
+                    <h1>AI 로봇 사탕가게 챗봇</h1>
                     <button id="clear-btn" class="clear-button">대화 초기화</button>
                 </div>
 
@@ -73,6 +77,9 @@
         </div>
     </div>
 
-    <script src="/static/script.js"></script>
+    <!-- JavaScript 파일들 -->
+    <script src="/static/scripts/streaming.js"></script>
+    <script src="/static/scripts/chatbot.js"></script>
+    <script src="/static/scripts/main.js"></script>
 </body>
 </html>

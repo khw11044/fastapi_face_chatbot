@@ -15,6 +15,7 @@ class CameraManager:
         self.camera = None
         self.is_streaming = False
         self.lock = threading.Lock()
+        self.frame_generator = None
     
     def start_camera(self, camera_index: int = 0):
         """카메라를 시작합니다."""
@@ -43,19 +44,35 @@ class CameraManager:
                 return False
     
     def stop_camera(self):
-        """카메라를 중지합니다."""
+        """카메라를 완전히 중지합니다."""
         with self.lock:
+            print("카메라 중지 요청...")
             self.is_streaming = False
+            
+            # 카메라 리소스 해제
             if self.camera is not None:
-                self.camera.release()
-                self.camera = None
-                print("카메라 중지됨")
+                try:
+                    self.camera.release()
+                    self.camera = None
+                    print("카메라 리소스 해제 완료")
+                except Exception as e:
+                    print(f"카메라 해제 중 오류: {e}")
+            
+            # OpenCV 윈도우 정리 (있다면)
+            try:
+                cv2.destroyAllWindows()
+            except Exception as e:
+                pass
+            
+            print("카메라 완전히 중지됨")
     
     def generate_frames(self):
         """프레임을 생성합니다."""
+        frame_count = 0
         while self.is_streaming:
             with self.lock:
                 if self.camera is None or not self.camera.isOpened():
+                    print("카메라가 없거나 열리지 않음. 스트림 종료.")
                     break
                 
                 success, frame = self.camera.read()
@@ -64,19 +81,32 @@ class CameraManager:
                     break
                 
                 # ✅ 얼굴 탐지 및 바운딩 박스 그리기
-                frame = face_service.detect_and_draw(frame)
+                try:
+                    frame = face_service.detect_and_draw(frame)
+                except Exception as e:
+                    print(f"얼굴 인식 오류: {e}")
+                    # 얼굴 인식에 실패해도 원본 프레임은 전송
 
                 # 프레임을 JPEG로 인코딩
                 ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
                 if not ret:
+                    print("프레임 인코딩 실패")
                     continue
                 
                 frame_bytes = buffer.tobytes()
+                frame_count += 1
+                
+                # 스트리밍이 중지되었는지 다시 확인
+                if not self.is_streaming:
+                    print(f"총 {frame_count}개 프레임 전송 후 스트림 종료")
+                    break
                 
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
             
             time.sleep(0.033)  # 약 30 FPS
+        
+        print("프레임 생성 함수 종료")
 
 # 전역 카메라 매니저 인스턴스
 camera_manager = CameraManager()
@@ -120,5 +150,5 @@ async def camera_status():
     """카메라 상태를 반환합니다."""
     return {
         "is_streaming": camera_manager.is_streaming,
-        "camera_active": camera_manager.camera is not None and camera_manager.camera.isOpened()
+        "camera_active": camera_manager.camera is not None and camera_manager.camera.isOpened() if camera_manager.camera else False
     }
