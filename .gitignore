@@ -1,5 +1,3 @@
 .env
 faces
 chat_history.db
-xarm
-xArm_Python_SDK
