@@ -9,7 +9,7 @@ class CameraStreaming {
 
     initElements() {
         this.startCameraBtn = document.getElementById('start-camera-btn');
-        this.stopCameraBtn = document.getElementById('stop-camera-btn');
+        // 중지 버튼 관련 코드 제거
         this.cameraStream = document.getElementById('camera-stream');
         this.cameraPlaceholder = document.getElementById('camera-placeholder');
         this.cameraError = document.getElementById('camera-error');
@@ -19,7 +19,7 @@ class CameraStreaming {
 
     bindEvents() {
         this.startCameraBtn.addEventListener('click', () => this.startCamera());
-        this.stopCameraBtn.addEventListener('click', () => this.stopCamera());
+        // 중지 버튼 이벤트 리스너 제거
         
         // 페이지를 떠날 때 카메라 리소스 정리
         window.addEventListener('beforeunload', () => {
@@ -33,6 +33,7 @@ class CameraStreaming {
     async startCamera() {
         try {
             this.startCameraBtn.disabled = true;
+            this.startCameraBtn.textContent = '연결 중...';
             this.updateCameraStatus('연결 중...', 'connecting');
             
             const response = await fetch('/camera/start', {
@@ -53,6 +54,10 @@ class CameraStreaming {
                 this.cameraActive = true;
                 this.updateCameraStatus('온라인', 'online');
                 
+                // 버튼 상태 업데이트 - 시작됨 상태로 변경
+                this.startCameraBtn.textContent = '실행 중';
+                this.startCameraBtn.disabled = true; // 계속 비활성화 상태 유지
+                
                 // 카메라 스트림 로드 이벤트
                 this.cameraStream.onload = () => {
                     this.updateCameraStatus('스트리밍 중', 'online');
@@ -60,24 +65,30 @@ class CameraStreaming {
                 
                 this.cameraStream.onerror = () => {
                     this.showCameraError('스트림 오류가 발생했습니다.');
+                    this.resetStartButton();
                 };
                 
             } else {
                 const data = await response.json();
                 this.showCameraError(data.detail || '카메라를 시작할 수 없습니다.');
+                this.resetStartButton();
             }
         } catch (error) {
             console.error('카메라 시작 오류:', error);
             this.showCameraError('카메라 연결에 실패했습니다.');
-        } finally {
-            this.startCameraBtn.disabled = false;
+            this.resetStartButton();
         }
     }
 
-    // 카메라 중지 함수 - 검은 화면으로 변경
+    // 시작 버튼을 원래 상태로 되돌리는 함수
+    resetStartButton() {
+        this.startCameraBtn.disabled = false;
+        this.startCameraBtn.textContent = '시작';
+    }
+
+    // 카메라 중지 함수 - 내부적으로만 사용 (페이지 종료 시 등)
     async stopCamera() {
         try {
-            this.stopCameraBtn.disabled = true;
             this.updateCameraStatus('중지 중...', 'connecting');
             
             const response = await fetch('/camera/stop', {
@@ -101,6 +112,9 @@ class CameraStreaming {
                 
                 this.cameraActive = false;
                 this.updateCameraStatus('오프라인', 'offline');
+                
+                // 시작 버튼 리셋
+                this.resetStartButton();
             } else {
                 const data = await response.json();
                 console.error('카메라 중지 오류:', data.detail);
@@ -109,8 +123,6 @@ class CameraStreaming {
         } catch (error) {
             console.error('카메라 중지 오류:', error);
             this.updateCameraStatus('중지 오류', 'offline');
-        } finally {
-            this.stopCameraBtn.disabled = false;
         }
     }
 
@@ -182,10 +194,15 @@ class CameraStreaming {
                     
                     this.cameraActive = true;
                     this.updateCameraStatus('스트리밍 중', 'online');
+                    
+                    // 버튼 상태를 실행 중으로 설정
+                    this.startCameraBtn.textContent = '실행 중';
+                    this.startCameraBtn.disabled = true;
                 } else if (!data.is_streaming && !this.cameraActive) {
-                    // 서버와 클라이언트 모두 비활성화된 경우 검은 화면 표시
-                    this.showBlackScreen();
+                    // 서버와 클라이언트 모두 비활성화된 경우 플레이스홀더 표시
+                    this.cameraPlaceholder.style.display = 'flex';
                     this.updateCameraStatus('오프라인', 'offline');
+                    this.resetStartButton();
                 }
             }
         } catch (error) {

@@ -44,6 +44,7 @@
     font-size: 0.9em;
     font-weight: 600;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 80px; /* 버튼 크기 일정하게 유지 */
 }
 
 .camera-btn.start {
@@ -51,22 +52,18 @@
     color: #28a745;
 }
 
-.camera-btn.stop {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.camera-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.camera-btn:disabled {
-    opacity: 0.6;
+/* 실행 중 상태의 버튼 스타일 */
+.camera-btn.start:disabled {
+    background-color: rgba(255, 255, 255, 0.7);
+    color: #6c757d;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+}
+
+.camera-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .camera-view {
