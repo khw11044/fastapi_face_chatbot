@@ -4,9 +4,16 @@ from typing import List, Tuple
 from datetime import datetime
 
 class DatabaseManager:
-    def __init__(self, db_path: str = "chat_history.db"):
+    def __init__(self, db_path: str = None):
         """데이터베이스 매니저 초기화"""
-        self.db_path = db_path
+        if db_path is None:
+            # chats 디렉토리에 데이터베이스 생성
+            chats_dir = "./chats"
+            os.makedirs(chats_dir, exist_ok=True)
+            self.db_path = os.path.join(chats_dir, "chat_history.db")
+        else:
+            self.db_path = db_path
+        
         self.init_database()
     
     def init_database(self):
@@ -35,6 +42,7 @@ class DatabaseManager:
             """)
             
             conn.commit()
+            print(f"Chat database initialized at: {self.db_path}")
     
     def save_conversation(self, session_id: str, user_message: str, ai_response: str):
         """대화 내용을 데이터베이스에 저장"""
@@ -114,3 +122,11 @@ class DatabaseManager:
             """.format(days))
             
             conn.commit()
+    
+    def get_database_info(self):
+        """데이터베이스 정보를 반환"""
+        return {
+            "db_path": self.db_path,
+            "db_exists": os.path.exists(self.db_path),
+            "db_size": os.path.getsize(self.db_path) if os.path.exists(self.db_path) else 0
+        }

@@ -32,9 +32,11 @@ async def get_index():
 # 앱 시작 시 초기화
 @app.on_event("startup")
 async def startup_event():
-    # 얼굴 데이터베이스 디렉토리 생성
+    # 필요한 디렉토리들 생성
     os.makedirs("./faces", exist_ok=True)
-    print("Face database directory initialized")
+    os.makedirs("./chats", exist_ok=True)
+    print("Face database directory initialized: ./faces")
+    print("Chat database directory initialized: ./chats")
 
 # 앱 종료 시 카메라 정리
 @app.on_event("shutdown")
