@@ -3,4 +3,7 @@ __pycache__/
 
 .env
 faces
-chat_history.db
+chats
+fonts
+model_cache
+
