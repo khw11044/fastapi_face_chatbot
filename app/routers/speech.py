@@ -3,6 +3,7 @@ import speech_recognition as sr
 from pydub import AudioSegment
 import tempfile
 import os
+from ..services.ros2_service import ros2_publisher
 
 router = APIRouter()
 
@@ -47,6 +48,14 @@ async def recognize_speech(audio: UploadFile = File(...)):
         # 4. Google Speech Recognition으로 한국어 인식
         try:
             text = recognizer.recognize_google(audio_data, language='ko-KR')
+            
+            # 5. ROS2 토픽으로 발행
+            try:
+                ros2_publisher.publish_message(text)
+            except Exception as ros_error:
+                print(f"⚠️ ROS2 publish error: {ros_error}")
+                # ROS2 발행 실패해도 웹 응답은 정상 반환
+            
             return {
                 "success": True,
                 "text": text
