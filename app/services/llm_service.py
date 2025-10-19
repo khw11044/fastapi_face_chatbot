@@ -24,7 +24,7 @@ class LLMService:
     def __init__(self):
         # OpenAI ChatGPT 모델 초기화
         self.llm = ChatOpenAI(
-            model_name="gpt-4o-mini",
+            model_name="gpt-4.1-mini",
             temperature=0.7,
             openai_api_key=os.getenv("OPENAI_API_KEY")
         )
@@ -41,19 +41,29 @@ class LLMService:
         
         # ToolBox 초기화 (자동으로 모든 도구들 로드됨)
         self.toolbox = ToolBox()
-        self.toolbox.add_packages([action_tool, expression_tool])   # calculation_tool
+        # self.toolbox.add_packages([action_tool, expression_tool])   # calculation_tool
+        self.toolbox.add_packages([action_tool, calculation_tool])   # calculation_tool
         self.tools = self.toolbox.get_tools()
         
         # Agent 초기화
         self.agent = self.init_agent()
         self.executor = self.init_executor()
         
+        # ROS2 서비스 연동
+        try:
+            from .ros2_service import ros2_publisher
+            self.ros2_service = ros2_publisher
+            print("✅ ROS2 서비스 연동 완료")
+        except Exception as e:
+            print(f"⚠️ ROS2 서비스 연동 실패: {e}")
+            self.ros2_service = None
+        
         # 현재 세션 ID
         self.current_session_id = 'default'
         
         print(f"✅ LLM Agent initialized with {len(self.tools)} tools")
-        for tool in self.tools:
-            print(f"  - {tool.name}: {tool.description}")
+        # for tool in self.tools:
+        #     print(f"  - {tool.name}: {tool.description}")
     
     def init_agent(self):
         """간단한 LLM Agent를 초기화합니다."""
@@ -123,6 +133,17 @@ class LLMService:
                 user_message,
                 response
             )
+            
+            # ROS2 토픽으로 LLM 응답 발행
+            if self.ros2_service:
+                try:
+                    success = self.ros2_service.publish_llm_response(response)
+                    if success:
+                        print(f"📤 LLM 응답이 ROS2 토픽으로 발행됨: /edie8/llm/output")
+                    else:
+                        print(f"⚠️ ROS2 토픽 발행 실패")
+                except Exception as ros_error:
+                    print(f"⚠️ ROS2 토픽 발행 중 오류: {ros_error}")
             
             return response
             

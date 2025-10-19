@@ -8,23 +8,34 @@ class ROS2PublisherService:
     """
     ROS2 Publisher 서비스
     STT로 인식된 텍스트를 '/edie8/llm/input' 토픽으로 발행
+    LLM Agent 응답을 '/edie8/llm/output' 토픽으로 발행
     """
     def __init__(self):
         self.node = None
-        self.publisher = None
+        self.input_publisher = None
+        self.output_publisher = None
         self.spin_thread = None
         self.initialized = False
         
     def initialize(self):
-        """ROS2 노드 및 Publisher 초기화"""
+        """ROS2 노드 및 Publisher들 초기화"""
         try:
             if not rclpy.ok():
                 rclpy.init()
             
             self.node = Node('fastapi_edie_node')
-            self.publisher = self.node.create_publisher(
+            
+            # Input publisher 초기화 (STT → LLM)
+            self.input_publisher = self.node.create_publisher(
                 String,
                 '/edie8/llm/input',
+                10
+            )
+            
+            # Output publisher 초기화 (LLM → 다른 노드들)
+            self.output_publisher = self.node.create_publisher(
+                String,
+                '/edie8/llm/output',
                 10
             )
             
@@ -37,7 +48,9 @@ class ROS2PublisherService:
             self.spin_thread.start()
             
             self.initialized = True
-            print("✅ ROS2 Publisher initialized: /edie8/llm/input")
+            print("✅ ROS2 Publishers initialized:")
+            print("   - /edie8/llm/input (STT → LLM)")
+            print("   - /edie8/llm/output (LLM → Others)")
             
         except Exception as e:
             print(f"❌ ROS2 initialization failed: {e}")
@@ -45,19 +58,19 @@ class ROS2PublisherService:
     
     def publish_message(self, text: str):
         """
-        텍스트를 ROS2 토픽으로 발행
+        STT 텍스트를 input 토픽으로 발행
         
         Args:
             text (str): 발행할 텍스트
         """
-        if not self.initialized or self.publisher is None:
-            print("⚠️ ROS2 not initialized, skipping publish")
+        if not self.initialized or self.input_publisher is None:
+            print("⚠️ ROS2 not initialized, skipping input publish")
             return False
         
         try:
             msg = String()
             msg.data = text
-            self.publisher.publish(msg)
+            self.input_publisher.publish(msg)
             
             if self.node:
                 self.node.get_logger().info(f'📢 Published to /edie8/llm/input: "{text}"')
@@ -65,7 +78,32 @@ class ROS2PublisherService:
             return True
             
         except Exception as e:
-            print(f"❌ Failed to publish message: {e}")
+            print(f"❌ Failed to publish input message: {e}")
+            return False
+    
+    def publish_llm_response(self, response_text: str):
+        """
+        LLM Agent 응답을 output 토픽으로 발행
+        
+        Args:
+            response_text (str): LLM Agent가 생성한 응답 텍스트
+        """
+        if not self.initialized or self.output_publisher is None:
+            print("⚠️ ROS2 not initialized, skipping output publish")
+            return False
+        
+        try:
+            msg = String()
+            msg.data = response_text
+            self.output_publisher.publish(msg)
+            
+            if self.node:
+                self.node.get_logger().info(f'📤 Published to /edie8/llm/output: "{response_text[:50]}..."')
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Failed to publish output message: {e}")
             return False
     
     def shutdown(self):

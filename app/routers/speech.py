@@ -12,6 +12,7 @@ async def recognize_speech(audio: UploadFile = File(...)):
     """
     업로드된 오디오 파일을 텍스트로 변환합니다.
     """
+    print(f"🎙️ STT 요청 수신됨 - 파일명: {audio.filename}, Content-Type: {audio.content_type}")
     temp_webm_path = None
     temp_wav_path = None
     
@@ -48,12 +49,28 @@ async def recognize_speech(audio: UploadFile = File(...)):
         # 4. Google Speech Recognition으로 한국어 인식
         try:
             text = recognizer.recognize_google(audio_data, language='ko-KR')
+            print(f"🎤 STT 결과: '{text}'")
             
             # 5. ROS2 토픽으로 발행
+            print(f"📡 ROS2 input publisher 호출 중...")
+            print(f"🔍 ros2_publisher 객체: {ros2_publisher}")
+            print(f"🔍 ros2_publisher 초기화 상태: {ros2_publisher.initialized if ros2_publisher else 'ros2_publisher is None'}")
+            
+            if ros2_publisher and ros2_publisher.initialized:
+                print(f"🔍 input_publisher 상태: {ros2_publisher.input_publisher}")
+            
             try:
-                ros2_publisher.publish_message(text)
+                success = ros2_publisher.publish_message(text)
+                print(f"📢 ROS2 input 발행 결과: {success}")
+                if success:
+                    print(f"✅ STT 결과 '{text}'가 /edie8/llm/input 토픽으로 발행됨")
+                else:
+                    print(f"❌ STT 결과 발행 실패")
             except Exception as ros_error:
                 print(f"⚠️ ROS2 publish error: {ros_error}")
+                print(f"🔍 에러 타입: {type(ros_error)}")
+                import traceback
+                print(f"🔍 상세 에러: {traceback.format_exc()}")
                 # ROS2 발행 실패해도 웹 응답은 정상 반환
             
             return {
