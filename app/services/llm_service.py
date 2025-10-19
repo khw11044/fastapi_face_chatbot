@@ -18,7 +18,7 @@ class LLMService:
     def __init__(self):
         # OpenAI ChatGPT 모델 초기화
         self.llm = ChatOpenAI(
-            model_name="gpt-4o-mini",
+            model_name="gpt-4.1-mini",
             temperature=0.7,
             openai_api_key=os.getenv("OPENAI_API_KEY")
         )

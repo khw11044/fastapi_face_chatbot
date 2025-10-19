@@ -2,13 +2,15 @@
 
 /* 챗봇 섹션 */
 .chat-section {
-    flex: 0 0 450px;
+    width: 500px;
+    max-width: 90%;
     display: flex;
     flex-direction: column;
 }
 
 .chat-container {
-    height: 80vh;
+    height: 85vh;
+    max-height: 800px;
     background-color: white;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -205,6 +207,7 @@
 /* 입력 영역 */
 .chat-input {
     display: flex;
+    gap: 10px;
     padding: 20px;
     background-color: white;
     border-top: 1px solid #e9ecef;
@@ -230,7 +233,6 @@
 }
 
 .chat-input button {
-    margin-left: 10px;
     padding: 12px 25px;
     background: linear-gradient(135deg, #0b93f6 0%, #0875d1 100%);
     color: white;
@@ -240,6 +242,32 @@
     font-size: 1em;
     font-weight: 600;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 마이크 버튼 */
+.mic-button {
+    padding: 12px 20px !important;
+    font-size: 1.2em !important;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
+.mic-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+}
+
+.mic-button.recording {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
 }
 
 .chat-input button:hover:not(:disabled) {
