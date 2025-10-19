@@ -8,8 +8,22 @@ conda create -n fastapi python=3.10 -y
 conda activate fastapi
 ```
 
+
+```
+sudo apt install python3-venv
+
+python3 -m venv venv 
+
+source venv/bin/activate
+```
+
+
 # 패키지 설치 
 
+```
+sudo apt update
+sudo apt install ffmpeg
+```
 
 ```
 pip install -r requirements.txt
@@ -22,16 +36,14 @@ pip install -r requirements.txt
 sudo apt-get install fonts-nanum
 ```
 
-# 필요 모델 사전 로딩 
-
-```
-# 모델 사전 로딩 (첫 실행만)
-python preload_models.py
-```
 
 # fastapi 웹 실행
 
 ```
+source venv/bin/activate
 python run.py
 ```
 
+`http://localhost:8000/`
+
+로 접근해야함
