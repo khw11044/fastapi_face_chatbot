@@ -81,7 +81,7 @@ class ChatBot {
         // 이전 대화 기록 불러오기
         await this.loadChatHistory();
         
-        this.addMessage('bot', `안녕하세요 ${userId}님! 저는 에디입니다. 🤖`);
+        this.addMessage('bot', `${userId} 🤖`);
         
         this.userInput.focus();
     }
@@ -285,7 +285,7 @@ class ChatBot {
             if (response.ok) {
                 this.chatBox.innerHTML = `
                     <div class="message bot">
-                        안녕하세요 ${this.currentUserId}님! 🤖
+                         ${this.currentUserId} 🤖
                     </div>
                 `;
             }
