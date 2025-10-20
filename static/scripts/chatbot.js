@@ -216,6 +216,14 @@ class ChatBot {
         
         // 줄바꿈 처리: \n을 실제 줄바꿈으로 변환
         messageDiv.textContent = text;
+
+        // 채팅창이 비활성화(로그인 전)여도 ROS2 메시지는 항상 표시
+        if (sender === 'robot') {
+            // 채팅창이 비활성화여도 강제로 append
+            this.chatBox.appendChild(messageDiv);
+            this.chatBox.scrollTop = this.chatBox.scrollHeight;
+            return;
+        }
         
         this.chatBox.appendChild(messageDiv);
         this.chatBox.scrollTop = this.chatBox.scrollHeight;
@@ -300,8 +308,9 @@ class ChatBot {
 
         this.ros2Socket.onmessage = (event) => {
             const text = event.data;
-            // ROS2에서 수신한 텍스트를 사용자 말풍선으로 추가
-            this.addMessage('user', text);
+            console.log('[ROS2 WebSocket] 수신:', text);
+            // 로그인 여부와 무관하게 항상 채팅창에 표시 (별도 스타일 'robot' 사용)
+            this.addMessage('robot', text);
         };
 
         this.ros2Socket.onclose = () => {

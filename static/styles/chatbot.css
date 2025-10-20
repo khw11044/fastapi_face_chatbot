@@ -204,6 +204,16 @@
     border-bottom-left-radius: 5px;
 }
 
+/* ROS2에서 온 메시지(로봇 말풍선) */
+.message.robot {
+    background: linear-gradient(135deg, #ffc107 0%, #ffecb3 100%);
+    color: #333;
+    border: 1px solid #ffe082;
+    margin-left: auto;
+    border-bottom-right-radius: 5px;
+    font-style: italic;
+}
+
 /* 입력 영역 */
 .chat-input {
     display: flex;
