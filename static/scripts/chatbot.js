@@ -341,9 +341,9 @@ class ChatBot {
             
             // UI 업데이트
             this.micButton.classList.add('recording');
-            this.userInput.placeholder = '🎤 녹음 중... (3초 무음 후 자동 전송)';
+            this.userInput.placeholder = '🎤 녹음 중... (2초 무음 후 자동 전송)';
             
-            // 3초 타이머 시작
+            // 2초 타이머 시작
             this.resetSilenceTimer();
             
             console.log('녹음 시작');
@@ -374,17 +374,17 @@ class ChatBot {
         }
     }
     
-    // 무음 감지 타이머 초기화 (3초)
+    // 무음 감지 타이머 초기화 (2초)
     resetSilenceTimer() {
         if (this.silenceTimer) {
             clearTimeout(this.silenceTimer);
         }
         
-        // 3초 후 자동 중지
+        // 2초 후 자동 중지
         this.silenceTimer = setTimeout(() => {
-            console.log('3초 무음 감지 - 녹음 중지');
+            console.log('2초 무음 감지 - 녹음 중지');
             this.stopRecording();
-        }, 3000);
+        }, 2000);
     }
     
     // 오디오를 서버로 전송하고 텍스트 받기

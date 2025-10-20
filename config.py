@@ -60,7 +60,7 @@ def print_startup_info():
     시작 정보 출력
     """
     print("=" * 50)
-    print("🚀 FastAPI 얼굴 인식 챗봇 시작")
+    print("🚀 FastAPI 에디 대화 시작")
     print("=" * 50)
     
     # Python 버전 정보

@@ -32,7 +32,7 @@ def execute_ros_command(command: str) -> Tuple[bool, str]:
 
     # Validate the command is a proper ROS2 command
     cmd = command.split(" ")
-    valid_ros2_commands = ["node", "topic", "service", "param", "doctor"]
+    valid_ros2_commands = ["node", "topic", "service", "action", "param", "doctor"]
 
     if len(cmd) < 2:
         raise ValueError(f"'{command}' is not a valid ROS2 command.")
@@ -92,13 +92,13 @@ def call_expression_action(action_index: Optional[int] = 1) -> str:
     if not success:
         return [output]
     
-    # time.sleep(0.1)
-    cmd = "ros2 topic pub -1 /edie8/emotion/motion_done std_msgs/msg/Bool 'data: true'"
-    success, output = execute_ros_command(cmd)
-    cmd = "ros2 topic pub -1 /edie8/emotion/display_done std_msgs/msg/Bool 'data: true'"
-    success, output = execute_ros_command(cmd)
-    cmd = "ros2 topic pub -1 /edie8/emotion/sound_done std_msgs/msg/Bool 'data: true'"
-    success, output = execute_ros_command(cmd)
+    # # time.sleep(0.1)
+    # cmd = "ros2 topic pub -1 /edie8/emotion/motion_done std_msgs/msg/Bool 'data: true'"
+    # success, output = execute_ros_command(cmd)
+    # cmd = "ros2 topic pub -1 /edie8/emotion/display_done std_msgs/msg/Bool 'data: true'"
+    # success, output = execute_ros_command(cmd)
+    # cmd = "ros2 topic pub -1 /edie8/emotion/sound_done std_msgs/msg/Bool 'data: true'"
+    # success, output = execute_ros_command(cmd)
     
     return f"에디가 자신의 생각과 감정을 {emotions[action_index]}으로 표현하였습니다."
 

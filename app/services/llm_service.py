@@ -42,7 +42,8 @@ class LLMService:
         # ToolBox 초기화 (자동으로 모든 도구들 로드됨)
         self.toolbox = ToolBox()
         # self.toolbox.add_packages([action_tool, expression_tool])   # calculation_tool
-        self.toolbox.add_packages([action_tool, calculation_tool])   # calculation_tool
+        # self.toolbox.add_packages([action_tool, calculation_tool])   # calculation_tool
+        self.toolbox.add_packages([action_tool, expression_tool])   # calculation_tool
         self.tools = self.toolbox.get_tools()
         
         # Agent 초기화
