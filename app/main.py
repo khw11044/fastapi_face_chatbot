@@ -3,7 +3,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import chatbot
-from .services.ros2_service import ros2_publisher
 import os
 
 app = FastAPI()
@@ -35,19 +34,9 @@ async def startup_event():
     # 필요한 디렉토리들 생성
     os.makedirs("./chats", exist_ok=True)
     print("Chat database directory initialized: ./chats")
-    
-    # ROS2 Publisher 초기화
-    try:
-        ros2_publisher.initialize()
-    except Exception as e:
-        print(f"⚠️ ROS2 initialization failed: {e}")
-        print("⚠️ Continuing without ROS2 support")
+    pass
 
 # 앱 종료 시 정리
 @app.on_event("shutdown")
 async def shutdown_event():
-    # ROS2 정리
-    try:
-        ros2_publisher.shutdown()
-    except Exception as e:
-        print(f"⚠️ ROS2 shutdown error: {e}")
+    pass
