@@ -21,13 +21,6 @@ class ChatBot {
         this.currentUserDiv = document.getElementById('current-user');
         this.currentUserName = document.getElementById('current-user-name');
         this.logoutButton = document.getElementById('logout-btn');
-        
-        // 음성 인식 관련 요소
-        this.micButton = document.getElementById('mic-btn');
-        this.mediaRecorder = null;
-        this.audioChunks = [];
-        this.isRecording = false;
-        this.silenceTimer = null;
     }
 
     bindEvents() {
@@ -35,7 +28,6 @@ class ChatBot {
         this.clearButton.addEventListener('click', () => this.clearChat());
         this.loginButton.addEventListener('click', () => this.loginUser());
         this.logoutButton.addEventListener('click', () => this.logoutUser());
-        this.micButton.addEventListener('click', () => this.toggleRecording());
         
         this.userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -295,152 +287,9 @@ class ChatBot {
         }
     }
 
-    // ========== 음성 인식 기능 ==========
-    
-    // 녹음 토글
-    async toggleRecording() {
-        if (!this.currentUserId || !this.sessionId) {
-            alert('먼저 로그인해주세요.');
-            return;
-        }
-        
-        if (this.isRecording) {
-            this.stopRecording();
-        } else {
-            await this.startRecording();
-        }
-    }
-    
-    // 녹음 시작
-    async startRecording() {
-        try {
-            // 마이크 권한 요청
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            // MediaRecorder 초기화
-            this.mediaRecorder = new MediaRecorder(stream);
-            this.audioChunks = [];
-            
-            // 데이터 수집
-            this.mediaRecorder.addEventListener('dataavailable', (event) => {
-                this.audioChunks.push(event.data);
-            });
-            
-            // 녹음 완료 시 처리
-            this.mediaRecorder.addEventListener('stop', async () => {
-                const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-                await this.sendAudioToServer(audioBlob);
-                
-                // 스트림 정리
-                stream.getTracks().forEach(track => track.stop());
-            });
-            
-            // 녹음 시작
-            this.mediaRecorder.start();
-            this.isRecording = true;
-            
-            // UI 업데이트
-            this.micButton.classList.add('recording');
-            this.userInput.placeholder = '🎤 녹음 중... (2초 무음 후 자동 전송)';
-            
-            // 2초 타이머 시작
-            this.resetSilenceTimer();
-            
-            console.log('녹음 시작');
-            
-        } catch (error) {
-            console.error('마이크 접근 오류:', error);
-            alert('마이크에 접근할 수 없습니다. 브라우저 설정을 확인해주세요.');
-        }
-    }
-    
-    // 녹음 중지
-    stopRecording() {
-        if (this.mediaRecorder && this.isRecording) {
-            this.mediaRecorder.stop();
-            this.isRecording = false;
-            
-            // 타이머 정리
-            if (this.silenceTimer) {
-                clearTimeout(this.silenceTimer);
-                this.silenceTimer = null;
-            }
-            
-            // UI 업데이트
-            this.micButton.classList.remove('recording');
-            this.userInput.placeholder = '메시지를 입력하세요...';
-            
-            console.log('녹음 중지');
-        }
-    }
-    
-    // 무음 감지 타이머 초기화 (2초)
-    resetSilenceTimer() {
-        if (this.silenceTimer) {
-            clearTimeout(this.silenceTimer);
-        }
-        
-        // 2초 후 자동 중지
-        this.silenceTimer = setTimeout(() => {
-            console.log('2초 무음 감지 - 녹음 중지');
-            this.stopRecording();
-        }, 2000);
-    }
-    
-    // 오디오를 서버로 전송하고 텍스트 받기
-    async sendAudioToServer(audioBlob) {
-        try {
-            // 로딩 상태 표시
-            this.userInput.placeholder = '🎤 음성 인식 중...';
-            this.micButton.disabled = true;
-            
-            // FormData 생성
-            const formData = new FormData();
-            formData.append('audio', audioBlob, 'recording.webm');
-            
-            // 서버로 전송
-            const response = await fetch('/speech/recognize', {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            if (data.success && data.text) {
-                // 인식된 텍스트를 입력창에 표시
-                this.userInput.value = data.text;
-                
-                // 자동으로 메시지 전송
-                await this.sendMessage();
-            } else {
-                // 인식 실패
-                this.userInput.placeholder = '❌ ' + (data.error || '음성을 인식할 수 없습니다.');
-                setTimeout(() => {
-                    this.userInput.placeholder = '메시지를 입력하세요...';
-                }, 3000);
-            }
-            
-        } catch (error) {
-            console.error('음성 인식 오류:', error);
-            this.userInput.placeholder = '❌ 음성 인식 중 오류가 발생했습니다.';
-            setTimeout(() => {
-                this.userInput.placeholder = '메시지를 입력하세요...';
-            }, 3000);
-        } finally {
-            this.micButton.disabled = false;
-        }
-    }
-
     // 소멸자 - 페이지 언로드 시 정리
     destroy() {
-        // 녹음 중이면 중지
-        if (this.isRecording) {
-            this.stopRecording();
-        }
+        // 정리할 추가 리소스 없음
     }
 }
 

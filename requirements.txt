@@ -9,8 +9,7 @@ langchain-community==0.2.17
 
 chromadb
 
-SpeechRecognition==3.10.0
-pydub
+opencv-python
 
 opencv-python
 
@@ -23,6 +22,3 @@ python-multipart
 
 # ROS2 dependencies
 rclpy
-
-# FFmpeg for audio processing (if using conda/pip)
-# Note: System installation may be required: sudo apt install ffmpeg
