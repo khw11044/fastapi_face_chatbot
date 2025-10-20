@@ -291,6 +291,24 @@ class ChatBot {
     destroy() {
         // 정리할 추가 리소스 없음
     }
+
+    // ===== ROS2 WebSocket 수신 및 채팅창 업데이트 =====
+    connectRos2WebSocket() {
+        const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = `${wsProto}://${location.host}/ws/ros2`;
+        this.ros2Socket = new WebSocket(wsUrl);
+
+        this.ros2Socket.onmessage = (event) => {
+            const text = event.data;
+            // ROS2에서 수신한 텍스트를 사용자 말풍선으로 추가
+            this.addMessage('user', text);
+        };
+
+        this.ros2Socket.onclose = () => {
+            // 자동 재연결 (간단 구현)
+            setTimeout(() => this.connectRos2WebSocket(), 2000);
+        };
+    }
 }
 
 // 페이지 언로드 시 정리
@@ -302,3 +320,4 @@ window.addEventListener('beforeunload', () => {
 
 // 챗봇 인스턴스 생성 (전역 변수로 노출)
 window.chatBot = new ChatBot();
+window.chatBot.connectRos2WebSocket();
