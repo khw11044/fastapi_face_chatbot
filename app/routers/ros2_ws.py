@@ -1,6 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import asyncio
-from app.services.ros2_subscriber import ros2_message_queue
+import json
+from app.services.ros2_subscriber import ros2_message_queue, bot_message_queue
 
 router = APIRouter()
 
@@ -9,14 +10,26 @@ async def ros2_websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            # 큐에 메시지가 있으면 바로 전송, 없으면 대기
+            sent = False
+            # ROS2 입력 메시지 우선 전송
             try:
-                # 0.5초마다 큐 polling
                 msg = await asyncio.get_event_loop().run_in_executor(
-                    None, ros2_message_queue.get, True, 0.5
+                    None, ros2_message_queue.get, True, 0.1
                 )
-                await websocket.send_text(msg)
+                await websocket.send_text(json.dumps({"type": "robot", "text": msg}))
+                sent = True
             except Exception:
+                pass
+            # LLM 응답 메시지 전송
+            try:
+                bot_msg = await asyncio.get_event_loop().run_in_executor(
+                    None, bot_message_queue.get, True, 0.1
+                )
+                await websocket.send_text(json.dumps({"type": "bot", "text": bot_msg}))
+                sent = True
+            except Exception:
+                pass
+            if not sent:
                 await asyncio.sleep(0.1)
     except WebSocketDisconnect:
         pass

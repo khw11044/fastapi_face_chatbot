@@ -126,6 +126,7 @@ class LLMService:
                 for i, (action, observation) in enumerate(intermediate_steps):
                     print(f"  {i+1}. {action.tool}: {action.tool_input}")
                     print(f"     결과: {observation}")
+            print(f"[AI 응답]: {response}")
             
             # 데이터베이스에 대화 내용 저장
             await asyncio.to_thread(

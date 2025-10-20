@@ -307,10 +307,18 @@ class ChatBot {
         this.ros2Socket = new WebSocket(wsUrl);
 
         this.ros2Socket.onmessage = (event) => {
-            const text = event.data;
-            console.log('[ROS2 WebSocket] 수신:', text);
-            // 로그인 여부와 무관하게 항상 채팅창에 표시 (별도 스타일 'robot' 사용)
-            this.addMessage('robot', text);
+            try {
+                const data = JSON.parse(event.data);
+                console.log('[ROS2 WebSocket] 수신:', data);
+                if (data.type === 'robot') {
+                    this.addMessage('robot', data.text);
+                } else if (data.type === 'bot') {
+                    this.addMessage('bot', data.text);
+                }
+            } catch (e) {
+                // 하위 호환: 텍스트만 온 경우
+                this.addMessage('robot', event.data);
+            }
         };
 
         this.ros2Socket.onclose = () => {
