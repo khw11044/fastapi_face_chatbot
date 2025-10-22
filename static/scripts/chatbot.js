@@ -201,7 +201,11 @@ class ChatBot {
             }
             
             // AI 응답 추가
-            this.addMessage('bot', data.response);
+            if (data.emotion_img) {
+                this.addMessage('bot', data.emotion_img, true);
+            } else {
+                this.addMessage('bot', data.response);
+            }
             
         } catch (error) {
             console.error('Error:', error);
@@ -218,13 +222,22 @@ class ChatBot {
     }
 
     // 메시지 추가 함수
-    addMessage(sender, text) {
+    addMessage(sender, text, isImage = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}`;
-        
-        // 줄바꿈 처리: \n을 실제 줄바꿈으로 변환
-        messageDiv.textContent = text;
-        
+
+        if (isImage) {
+            // 이미지 말풍선
+            const img = document.createElement('img');
+            img.src = text;
+            img.alt = '감정 이미지';
+            img.className = 'emotion-image';
+            messageDiv.appendChild(img);
+        } else {
+            // 줄바꿈 처리: \n을 실제 줄바꿈으로 변환
+            messageDiv.textContent = text;
+        }
+
         this.chatBox.appendChild(messageDiv);
         this.chatBox.scrollTop = this.chatBox.scrollHeight;
     }

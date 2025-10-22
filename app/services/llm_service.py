@@ -22,6 +22,39 @@ from utils.agent.toolbox import expression as expression_tool
 
 load_dotenv()
 
+import re
+
+# 감정 키워드 → 이미지 파일명 매핑
+EMOTION_IMAGE_MAP = {
+    "curious": "curious.png",
+    "delight": "delight.png",
+    "dizzy": "dizzy.png",
+    "expressionless": "expressionless.png",
+    "love": "love.png",
+    "sad": "sad.png",
+    "sleepy": "sleepy.png",
+    "surprise": "surprise.png",
+}
+
+def parse_emotion_from_response(response: str):
+    """
+    '[감정] : <감정>' 패턴에서 감정 키워드 추출
+    """
+    match = re.search(r"\[감정\]\s*:\s*([a-zA-Z_]+)", response)
+    if match:
+        return match.group(1).strip().lower()
+    return None
+
+def get_emotion_image_path(emotion: str):
+    """
+    감정 키워드 → 이미지 파일 경로 반환 (없으면 기본값)
+    """
+    filename = EMOTION_IMAGE_MAP.get(emotion)
+    if filename:
+        return f"/static/face/{filename}"
+    # fallback: 기본 neutral 이미지
+    return "/static/face/expressionless.png"
+
 class LLMService:
     def __init__(self):
         # OpenAI ChatGPT 모델 초기화

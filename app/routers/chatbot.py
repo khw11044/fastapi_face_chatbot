@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from ..services.llm_service import LLMService
+from ..services.llm_service import LLMService, parse_emotion_from_response, get_emotion_image_path
 from ..services.ros2_service import ros2_publisher
 
 router = APIRouter()
@@ -35,9 +35,18 @@ async def chat(request: ChatRequest):
         # AI 응답 생성
         response = await llm_service.generate_response(request.message, request.session_id)
         
+        # 감정 파싱 및 이미지 경로 매핑
+        emotion = parse_emotion_from_response(response)
+        emotion_img = get_emotion_image_path(emotion) if emotion else None
+
         print(f'[AI] {response}')
+        print(f'[감정] {emotion}, [이미지] {emotion_img}')
         
-        return {"response": response}
+        return {
+            "response": response,
+            "emotion": emotion,
+            "emotion_img": emotion_img
+        }
     except Exception as e:
         print(f"Chat error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
