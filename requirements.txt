@@ -2,10 +2,10 @@ fastapi
 uvicorn[standard]
 
 # LangChain - create_tool_calling_agent 호환 버전 (검증됨)
-langchain==0.2.16
-langchain-openai==0.1.25
-langchain-core==0.2.40
-langchain-community==0.2.17
+langchain==0.3.7
+langchain-community==0.3.7
+langchain-openai==0.3.4
+langchain-ollama==0.2.3
 
 chromadb
 

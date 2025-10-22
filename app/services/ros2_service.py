@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from std_msgs.msg import String, UInt8, Float64MultiArray
+from rclpy.qos import QoSProfile, ReliabilityPolicy
 import threading
 
 
@@ -14,6 +15,9 @@ class ROS2PublisherService:
         self.node = None
         self.input_publisher = None
         self.output_publisher = None
+        self.emotion_publisher = None
+        self.left_ear_publisher = None
+        self.right_ear_publisher = None
         self.spin_thread = None
         self.initialized = False
         
@@ -39,6 +43,29 @@ class ROS2PublisherService:
                 10
             )
             
+            # Emotion publisher (BEST_EFFORT)
+            qos_profile = QoSProfile(
+                reliability=ReliabilityPolicy.BEST_EFFORT,
+                depth=10
+            )
+            self.emotion_publisher = self.node.create_publisher(
+                UInt8,
+                '/edie8/emotion/action_index',
+                qos_profile
+            )
+
+            # Ear publishers (BEST_EFFORT)
+            self.left_ear_publisher = self.node.create_publisher(
+                Float64MultiArray,
+                '/edie8_l_ear_position_controller/commands',
+                qos_profile
+            )
+            self.right_ear_publisher = self.node.create_publisher(
+                Float64MultiArray,
+                '/edie8_r_ear_position_controller/commands',
+                qos_profile
+            )
+
             # 별도 스레드에서 spin 실행
             self.spin_thread = threading.Thread(
                 target=rclpy.spin,
@@ -51,6 +78,7 @@ class ROS2PublisherService:
             print("✅ ROS2 Publishers initialized:")
             print("   - /edie8/llm/input (STT → LLM)")
             print("   - /edie8/llm/output (LLM → Others)")
+            print("   - /edie8/emotion/action_index (Emotion, BEST_EFFORT)")
             
         except Exception as e:
             print(f"❌ ROS2 initialization failed: {e}")
@@ -106,6 +134,56 @@ class ROS2PublisherService:
             print(f"❌ Failed to publish output message: {e}")
             return False
     
+    def publish_emotion_action(self, action_index: int):
+        """
+        감정 action_index를 emotion 토픽으로 퍼블리시 (BEST_EFFORT)
+        Args:
+            action_index (int): 1~11, 감정 인덱스
+        Returns:
+            bool: 성공 여부
+        """
+        if not self.initialized or self.emotion_publisher is None:
+            print("⚠️ ROS2 not initialized, skipping emotion publish")
+            return False
+        try:
+            msg = UInt8()
+            msg.data = action_index
+            self.emotion_publisher.publish(msg)
+            if self.node:
+                self.node.get_logger().info(f'😃 Published to /edie8/emotion/action_index: {action_index}')
+            return True
+        except Exception as e:
+            print(f"❌ Failed to publish emotion action: {e}")
+            return False
+
+    def publish_ear_position(self, left: float, right: float) -> bool:
+        """
+        좌/우 귀 위치를 각각의 토픽으로 퍼블리시 (BEST_EFFORT)
+        Args:
+            left (float): 왼쪽 귀 위치 (0.0~0.9)
+            right (float): 오른쪽 귀 위치 (0.0~0.9)
+        Returns:
+            bool: 성공 여부
+        """
+        if not self.initialized or self.left_ear_publisher is None or self.right_ear_publisher is None:
+            print("⚠️ ROS2 not initialized, skipping ear publish")
+            return False
+        try:
+            left_msg = Float64MultiArray()
+            left_msg.data = [left]
+            self.left_ear_publisher.publish(left_msg)
+            if self.node:
+                self.node.get_logger().info(f'👂 Published to /edie8_l_ear_position_controller/commands: {left}')
+            right_msg = Float64MultiArray()
+            right_msg.data = [right]
+            self.right_ear_publisher.publish(right_msg)
+            if self.node:
+                self.node.get_logger().info(f'👂 Published to /edie8_r_ear_position_controller/commands: {right}')
+            return True
+        except Exception as e:
+            print(f"❌ Failed to publish ear positions: {e}")
+            return False
+
     def shutdown(self):
         """ROS2 노드 종료"""
         if self.node:
