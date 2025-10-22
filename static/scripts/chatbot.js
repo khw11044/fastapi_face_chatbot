@@ -35,8 +35,17 @@ class ChatBot {
         this.clearButton.addEventListener('click', () => this.clearChat());
         this.loginButton.addEventListener('click', () => this.loginUser());
         this.logoutButton.addEventListener('click', () => this.logoutUser());
-        this.micButton.addEventListener('click', () => this.toggleRecording());
-        
+
+        // 토글형 마이크 버튼
+        this.isContinuousRecording = false;
+        this.micButton.addEventListener('click', () => {
+            if (this.isContinuousRecording) {
+                this.stopContinuousRecording();
+            } else {
+                this.startContinuousRecording();
+            }
+        });
+
         this.userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -315,89 +324,124 @@ class ChatBot {
 
     // ========== 음성 인식 기능 ==========
     
-    // 녹음 토글
-    async toggleRecording() {
+    // 연속 STT 토글 시작
+    async startContinuousRecording() {
         if (!this.currentUserId || !this.sessionId) {
             alert('먼저 로그인해주세요.');
             return;
         }
-        
+        if (this.isContinuousRecording) return;
+        this.isContinuousRecording = true;
+        this.micButton.classList.add('recording');
+        this.userInput.placeholder = '🎤 연속 인식 중... (마이크 버튼을 다시 누르면 중지)';
+        await this.continuousRecordLoop();
+    }
+
+    // 연속 STT 토글 중지
+    stopContinuousRecording() {
+        this.isContinuousRecording = false;
+        this.micButton.classList.remove('recording');
+        this.userInput.placeholder = '메시지를 입력하세요...';
         if (this.isRecording) {
             this.stopRecording();
-        } else {
-            await this.startRecording();
         }
     }
-    
-    // 녹음 시작
-    async startRecording() {
+
+    // 연속 녹음-인식 루프 (리팩터링: stop/start 타이밍, stream 관리 명확화)
+    async continuousRecordLoop() {
+        while (this.isContinuousRecording) {
+            await this.recordAndRecognizeOnce();
+        }
+    }
+
+    // 한 번의 녹음-인식-정리
+    async recordAndRecognizeOnce() {
+        let stream = null;
         try {
-            // 마이크 권한 요청
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            // MediaRecorder 초기화
-            this.mediaRecorder = new MediaRecorder(stream);
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             this.audioChunks = [];
-            
-            // 데이터 수집
-            this.mediaRecorder.addEventListener('dataavailable', (event) => {
+            this.isRecording = true;
+
+            const mediaRecorder = new MediaRecorder(stream);
+            this.mediaRecorder = mediaRecorder;
+
+            // 무음 감지 타이머
+            let silenceTimer = null;
+            const resetSilenceTimer = () => {
+                if (silenceTimer) clearTimeout(silenceTimer);
+                silenceTimer = setTimeout(() => {
+                    if (mediaRecorder.state === 'recording') {
+                        console.log('[STT] 2초 무음 감지 - 녹음 중지');
+                        mediaRecorder.stop();
+                    }
+                }, 2000);
+            };
+
+            mediaRecorder.addEventListener('dataavailable', (event) => {
                 this.audioChunks.push(event.data);
             });
-            
-            // 녹음 완료 시 처리
-            this.mediaRecorder.addEventListener('stop', async () => {
+
+            mediaRecorder.addEventListener('start', () => {
+                this.micButton.classList.add('recording');
+                this.userInput.placeholder = this.isContinuousRecording
+                    ? '🎤 연속 인식 중... (마이크 버튼을 다시 누르면 중지)'
+                    : '🎤 녹음 중... (2초 무음 후 자동 전송)';
+                resetSilenceTimer();
+                console.log('[STT] 녹음 시작');
+            });
+
+            mediaRecorder.addEventListener('stop', async () => {
+                if (silenceTimer) clearTimeout(silenceTimer);
+                this.isRecording = false;
+                this.micButton.classList.remove('recording');
+                this.userInput.placeholder = '메시지를 입력하세요...';
+
                 const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
                 await this.sendAudioToServer(audioBlob);
-                
+
                 // 스트림 정리
-                stream.getTracks().forEach(track => track.stop());
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
             });
-            
-            // 녹음 시작
-            this.mediaRecorder.start();
-            this.isRecording = true;
-            
-            // UI 업데이트
-            this.micButton.classList.add('recording');
-            this.userInput.placeholder = '🎤 녹음 중... (2초 무음 후 자동 전송)';
-            
-            // 2초 타이머 시작
-            this.resetSilenceTimer();
-            
-            console.log('녹음 시작');
-            
+
+            // 음성 입력 감지 시마다 무음 타이머 리셋
+            mediaRecorder.addEventListener('dataavailable', resetSilenceTimer);
+
+            mediaRecorder.start();
+            // 녹음이 끝날 때까지 대기
+            await new Promise((resolve) => {
+                mediaRecorder.addEventListener('stop', resolve, { once: true });
+            });
         } catch (error) {
-            console.error('마이크 접근 오류:', error);
+            console.error('[STT] 마이크 접근/녹음 오류:', error);
             alert('마이크에 접근할 수 없습니다. 브라우저 설정을 확인해주세요.');
+            this.stopContinuousRecording();
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
         }
     }
-    
+
+    // 녹음 시작 (단일 녹음: 기존 단일 STT용)
+    async startRecording(isLoop = false) {
+        await this.recordAndRecognizeOnce();
+    }
+
     // 녹음 중지
     stopRecording() {
         if (this.mediaRecorder && this.isRecording) {
             this.mediaRecorder.stop();
             this.isRecording = false;
-            
-            // 타이머 정리
-            if (this.silenceTimer) {
-                clearTimeout(this.silenceTimer);
-                this.silenceTimer = null;
-            }
-            
-            // UI 업데이트
-            this.micButton.classList.remove('recording');
-            this.userInput.placeholder = '메시지를 입력하세요...';
-            
-            console.log('녹음 중지');
         }
     }
-    
+
     // 무음 감지 타이머 초기화 (2초)
     resetSilenceTimer() {
         if (this.silenceTimer) {
             clearTimeout(this.silenceTimer);
         }
-        
+
         // 2초 후 자동 중지
         this.silenceTimer = setTimeout(() => {
             console.log('2초 무음 감지 - 녹음 중지');
@@ -422,8 +466,11 @@ class ChatBot {
                 body: formData
             });
 
+            console.log('[STT] fetch /speech/recognize status:', response.status);
+
             if (response.status === 204) {
                 // 트리거 워드 미포함: 안내 메시지
+                console.log('[STT] 트리거 워드 없음 (204 No Content)');
                 this.userInput.placeholder = '에디를 부르고 말해주세요.';
                 setTimeout(() => {
                     this.userInput.placeholder = '메시지를 입력하세요...';
@@ -433,19 +480,23 @@ class ChatBot {
             }
 
             if (!response.ok) {
+                console.error('[STT] HTTP error! status:', response.status);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
+            console.log('[STT] fetch /speech/recognize data:', data);
 
             if (data.success && data.text) {
                 // 인식된 텍스트를 입력창에 표시
+                console.log('[STT] 인식 성공, 텍스트:', data.text);
                 this.userInput.value = data.text;
 
                 // 자동으로 메시지 전송
                 await this.sendMessage();
             } else {
                 // 인식 실패
+                console.warn('[STT] 인식 실패, data:', data);
                 this.userInput.placeholder = '❌ ' + (data.error || '음성을 인식할 수 없습니다.');
                 setTimeout(() => {
                     this.userInput.placeholder = '메시지를 입력하세요...';
