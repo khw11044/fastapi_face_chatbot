@@ -50,6 +50,26 @@ class ChatBot {
                 this.loginUser();
             }
         });
+
+        // 스페이스바 누르고 있는 동안만 STT
+        this.isSpaceRecording = false;
+        window.addEventListener('keydown', async (e) => {
+            if (e.code === 'Space' && !this.isSpaceRecording && !this.isRecording) {
+                // 입력창, 버튼 등 포커스가 있을 때만 동작 (원치 않는 오작동 방지)
+                if (document.activeElement === this.userInput || document.activeElement === document.body) {
+                    this.isSpaceRecording = true;
+                    this.userInput.placeholder = '🎤 스페이스바 누르는 동안 녹음 중...';
+                    await this.startRecording();
+                }
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space' && this.isSpaceRecording) {
+                this.isSpaceRecording = false;
+                this.stopRecording();
+                this.userInput.placeholder = '메시지를 입력하세요...';
+            }
+        });
     }
 
     init() {
