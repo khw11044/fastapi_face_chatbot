@@ -421,17 +421,27 @@ class ChatBot {
                 method: 'POST',
                 body: formData
             });
-            
+
+            if (response.status === 204) {
+                // 트리거 워드 미포함: 안내 메시지
+                this.userInput.placeholder = '에디를 부르고 말해주세요.';
+                setTimeout(() => {
+                    this.userInput.placeholder = '메시지를 입력하세요...';
+                }, 3000);
+                this.micButton.disabled = false;
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             if (data.success && data.text) {
                 // 인식된 텍스트를 입력창에 표시
                 this.userInput.value = data.text;
-                
+
                 // 자동으로 메시지 전송
                 await this.sendMessage();
             } else {
@@ -441,7 +451,7 @@ class ChatBot {
                     this.userInput.placeholder = '메시지를 입력하세요...';
                 }, 3000);
             }
-            
+
         } catch (error) {
             console.error('음성 인식 오류:', error);
             this.userInput.placeholder = '❌ 음성 인식 중 오류가 발생했습니다.';

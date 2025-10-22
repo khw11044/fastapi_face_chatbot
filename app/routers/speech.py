@@ -50,7 +50,13 @@ async def recognize_speech(audio: UploadFile = File(...)):
         try:
             text = recognizer.recognize_google(audio_data, language='ko-KR')
             print(f"🎤 STT 결과: '{text}'")
-            
+
+            # "에디야" 트리거 검사 (공백/대소문자 무시)
+            if "에디야" not in text.replace(" ", "").lower():
+                print("트리거 워드 '에디야' 미포함 - LLM-agent 미호출, 204 No Content 반환")
+                from fastapi import Response
+                return Response(status_code=204)
+
             # 5. ROS2 토픽으로 발행
             print(f"📡 ROS2 input publisher 호출 중...")
             print(f"🔍 ros2_publisher 객체: {ros2_publisher}")
