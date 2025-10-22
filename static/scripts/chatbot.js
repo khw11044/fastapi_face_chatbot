@@ -232,6 +232,10 @@ class ChatBot {
             img.src = text;
             img.alt = '감정 이미지';
             img.className = 'emotion-image';
+            img.onload = () => {
+                // 이미지가 완전히 로드된 후 스크롤 내리기
+                this.chatBox.scrollTop = this.chatBox.scrollHeight;
+            };
             messageDiv.appendChild(img);
         } else {
             // 줄바꿈 처리: \n을 실제 줄바꿈으로 변환
@@ -239,6 +243,7 @@ class ChatBot {
         }
 
         this.chatBox.appendChild(messageDiv);
+        // 텍스트 메시지이거나, 이미지가 이미 캐시되어 바로 로드된 경우에도 스크롤 내림
         this.chatBox.scrollTop = this.chatBox.scrollHeight;
     }
 
