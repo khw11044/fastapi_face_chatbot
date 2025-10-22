@@ -58,7 +58,7 @@ class ChatBot {
                 // 입력창, 버튼 등 포커스가 있을 때만 동작 (원치 않는 오작동 방지)
                 if (document.activeElement === this.userInput || document.activeElement === document.body) {
                     this.isSpaceRecording = true;
-                    this.userInput.placeholder = '🎤 스페이스바 누르는 동안 녹음 중...';
+                    this.userInput.placeholder = '🎤 스페이스바 누르는 동안 인식 중...';
                     await this.startRecording();
                 }
             }
@@ -379,12 +379,12 @@ class ChatBot {
             
             // UI 업데이트
             this.micButton.classList.add('recording');
-            this.userInput.placeholder = '🎤 녹음 중... (2초 무음 후 자동 전송)';
+            this.userInput.placeholder = '🎤 인식 중... (2초 무음 후 자동 전송)';
             
             // 2초 타이머 시작
             this.resetSilenceTimer();
             
-            console.log('녹음 시작');
+            console.log('인식 시작');
             
         } catch (error) {
             console.error('마이크 접근 오류:', error);
@@ -408,7 +408,7 @@ class ChatBot {
             this.micButton.classList.remove('recording');
             this.userInput.placeholder = '메시지를 입력하세요...';
             
-            console.log('녹음 중지');
+            console.log('인식 중지');
         }
     }
     
@@ -420,7 +420,7 @@ class ChatBot {
         
         // 2초 후 자동 중지
         this.silenceTimer = setTimeout(() => {
-            console.log('2초 무음 감지 - 녹음 중지');
+            console.log('2초 무음 감지 - 인식 중지');
             this.stopRecording();
         }, 2000);
     }
