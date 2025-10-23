@@ -64,11 +64,15 @@ class LLMService:
             openai_api_key=os.getenv("OPENAI_API_KEY")
         )
         
-        # self.llm = ChatOllama(
-        #     # model="qwen2.5:1.5b",
-        #     model="qwen3:1.7b",
-        #     temperature=0.1
-        # )
+        # edie_qwen2.5_0.5b_q4_k_m:latest 
+        # edie_qwen2.5_1.5b_q4_k_m:latest 
+        # edie_qwen2.5_1.5b_q4_0:latest 
+        
+        model_name = 'edie_qwen2.5_0.5b_q4_k_m:latest'
+        self.llm = ChatOllama(
+            model=model_name,
+            temperature=0.1
+        )
         
         # chats 디렉토리 생성
         self.chats_dir = "./chats"
