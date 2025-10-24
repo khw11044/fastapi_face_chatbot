@@ -28,6 +28,10 @@ class ChatBot {
         this.audioChunks = [];
         this.isRecording = false;
         this.silenceTimer = null;
+
+        // STT 모드 토글 요소 및 상태
+        this.sttToggle = document.getElementById('stt-toggle'); // 체크박스 등
+        this.isSttMode = this.sttToggle ? this.sttToggle.checked : false;
     }
 
     bindEvents() {
@@ -51,10 +55,22 @@ class ChatBot {
             }
         });
 
-        // 스페이스바 누르고 있는 동안만 STT
+        // STT 모드 토글 이벤트
+        if (this.sttToggle) {
+            this.sttToggle.addEventListener('change', (e) => {
+                this.isSttMode = e.target.checked;
+            });
+        }
+
+        // 스페이스바 누르고 있는 동안만 STT (STT 모드일 때만)
         this.isSpaceRecording = false;
         window.addEventListener('keydown', async (e) => {
-            if (e.code === 'Space' && !this.isSpaceRecording && !this.isRecording) {
+            if (
+                this.isSttMode && // STT 모드가 켜진 경우에만
+                e.code === 'Space' &&
+                !this.isSpaceRecording &&
+                !this.isRecording
+            ) {
                 // 입력창, 버튼 등 포커스가 있을 때만 동작 (원치 않는 오작동 방지)
                 if (document.activeElement === this.userInput || document.activeElement === document.body) {
                     this.isSpaceRecording = true;
@@ -64,7 +80,11 @@ class ChatBot {
             }
         });
         window.addEventListener('keyup', (e) => {
-            if (e.code === 'Space' && this.isSpaceRecording) {
+            if (
+                this.isSttMode && // STT 모드가 켜진 경우에만
+                e.code === 'Space' &&
+                this.isSpaceRecording
+            ) {
                 this.isSpaceRecording = false;
                 this.stopRecording();
                 this.userInput.placeholder = '메시지를 입력하세요...';

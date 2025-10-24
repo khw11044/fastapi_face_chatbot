@@ -40,11 +40,16 @@
                 </div>
 
                 <!-- 입력 영역 -->
-                <div class="chat-input">
-                    <input type="text" id="user-input" placeholder="메시지를 입력하세요..." maxlength="500">
-                    <button id="mic-btn" class="mic-button" title="음성 입력">🎤</button>
-                    <button id="send-btn">전송</button>
-                </div>
+        <div class="chat-input">
+            <!-- STT 모드 토글 -->
+            <label style="margin-right:8px; display:flex; align-items:center;">
+                <input type="checkbox" id="stt-toggle" style="margin-right:4px;">
+                <span style="font-size:0.95em;">STT 모드</span>
+            </label>
+            <input id="user-input" type="text" placeholder="메시지를 입력하세요..." autocomplete="off" />
+            <button id="mic-btn" title="음성 인식"><span class="material-icons">mic</span></button>
+            <button id="send-btn">전송</button>
+        </div>
             </div>
         </div>
     </div>
