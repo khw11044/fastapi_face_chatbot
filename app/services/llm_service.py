@@ -37,6 +37,21 @@ EMOTION_IMAGE_MAP = {
     "disappointment": "disappointment.png",
 }
 
+emotions = {
+    1: "궁금함",                # curious.png
+    2: "졸림",                  # sleepy.png
+    3: "웃김(즐거움)",          # delight.png
+    4: "기쁨(뿌듯함)",          # delight.png
+    5: "슬픔",                  # sad.png
+    6: "놀람",                  # surprise.png
+    7: "매우놀람",              # surprise.png
+    8: "실망",                  # disappointment.png
+    9: "사랑",                  # love.png
+    10: "어지러움",             # dizzy.png
+    11: "아주 어지러움",        # dizzy.png
+    # "low-dattery": 12,
+}
+
 def parse_emotion_from_response(response: str):
     """
     '[감정] : <감정>' 패턴에서 감정 키워드 추출
@@ -55,6 +70,35 @@ def get_emotion_image_path(emotion: str):
         return f"/static/face/{filename}"
     # fallback: 기본 neutral 이미지
     return "/static/face/expressionless.png"
+
+def get_action_index_from_emotion(emotion: str):
+    """
+    감정 키워드(영문/한글) → action_index 반환 (없으면 None)
+    """
+    if not emotion:
+        return None
+    # 1. 영문 감정명 → action_index
+    emotion = emotion.strip().lower()
+    # 영문 매핑
+    EN_EMOTION_TO_INDEX = {
+        "curious": 1,
+        "sleepy": 2,
+        "delight": 3,  # delight는 3,4 모두 매핑 가능하나 우선 3
+        "sad": 5,
+        "surprise": 6,  # surprise는 6,7 모두 매핑 가능하나 우선 6
+        "disappointment": 8,
+        "love": 9,
+        "dizzy": 10,
+        "expressionless": None,  # 표정없음은 action_index 없음
+    }
+    if emotion in EN_EMOTION_TO_INDEX:
+        return EN_EMOTION_TO_INDEX[emotion]
+    # 2. 한글 감정명 → action_index
+    for idx, kor in emotions.items():
+        if emotion in kor or kor in emotion:
+            return idx
+    # 3. 기타(매핑 실패)
+    return None
 
 class LLMService:
     def __init__(self):
@@ -172,6 +216,22 @@ class LLMService:
                 for i, (action, observation) in enumerate(intermediate_steps):
                     print(f"  {i+1}. {action.tool}: {action.tool_input}")
                     print(f"     결과: {observation}")
+            else:
+                # 도구 미사용 시 감정 파싱 및 자동 표현
+                emotion = parse_emotion_from_response(response)
+                action_index = get_action_index_from_emotion(emotion)
+                expression_result = ""
+                if action_index:
+                    try:
+                        # expression_tool.call_expression_action은 toolbox에 등록되어 있으므로 직접 호출
+                        expression_result = self.toolbox.get_tool("call_expression_action").run({"action_index": action_index})
+                    except Exception as e:
+                        expression_result = f"감정 퍼블리시 실패: {e}"
+                else:
+                    expression_result = "감정 매핑 실패"
+                image_path = get_emotion_image_path(emotion)
+                # 응답 포맷 확장
+                response = f"{response}\n[감정이미지]: {image_path}\n[표현결과]: {expression_result}"
             
             # 데이터베이스에 대화 내용 저장
             await asyncio.to_thread(
