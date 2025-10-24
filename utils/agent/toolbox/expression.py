@@ -6,17 +6,17 @@ from langchain_core.tools import tool
 from app.services.ros2_service import ros2_publisher
 
 emotions = {
-    1: "궁금함",
-    2: "졸림",
-    3: "웃김(즐거움)",
-    4: "기쁨(뿌듯함)",
-    5: "슬픔",
-    6: "놀람",
-    7: "매우놀람",
-    8: "실망",
-    9: "사랑",
-    10: "어지러움",
-    11: "아주 어지러움",
+    1: "궁금함",                # curious.png
+    2: "졸림",                  # sleepy.png
+    3: "웃김(즐거움)",          # delight.png
+    4: "기쁨(뿌듯함)",          # delight.png
+    5: "슬픔",                  # sad.png
+    6: "놀람",                  # surprise.png
+    7: "매우놀람",              # surprise.png
+    8: "실망",                  # disappointment.png
+    9: "사랑",                  # love.png
+    10: "어지러움",             # dizzy.png
+    11: "아주 어지러움",        # dizzy.png
     # "low-dattery": 12,
 }
 
@@ -51,7 +51,6 @@ def call_expression_action(action_index: Optional[int] = 1) -> str:
     Returns:
         str:
             A short text message describing the emotion expressed by Edie.
-            Example: `"에디가 자신의 생각과 감정을 행복으로 표현하였습니다."`
 
     Usage:
         Use this tool when you want Edie to display a specific emotion.

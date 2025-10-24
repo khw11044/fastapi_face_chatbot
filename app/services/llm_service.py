@@ -13,7 +13,7 @@ from typing import Dict, List
 from dotenv import load_dotenv
 
 
-from utils.prompts.prompt import edie_agent_prompt
+from utils.prompts.prompt import edie_agent_prompt, edie_robot_system_simple_prompt_obj
 from utils.databases.database import DatabaseManager
 from utils.agent.toolbox import ToolBox
 from utils.agent.toolbox import calculation as calculation_tool
@@ -34,6 +34,7 @@ EMOTION_IMAGE_MAP = {
     "sad": "sad.png",
     "sleepy": "sleepy.png",
     "surprise": "surprise.png",
+    "disappointment": "disappointment.png",
 }
 
 def parse_emotion_from_response(response: str):
@@ -68,11 +69,11 @@ class LLMService:
         # edie_qwen2.5_1.5b_q4_k_m:latest 
         # edie_qwen2.5_1.5b_q4_0:latest 
         
-        model_name = 'edie_qwen2.5_0.5b_q4_k_m:latest'
-        self.llm = ChatOllama(
-            model=model_name,
-            temperature=0.1
-        )
+        # model_name = 'edie_qwen2.5_1.5b_q4_k_m:latest '
+        # self.llm = ChatOllama(
+        #     model=model_name,
+        #     temperature=0.1
+        # )
         
         # chats 디렉토리 생성
         self.chats_dir = "./chats"
@@ -113,7 +114,7 @@ class LLMService:
     
     def init_agent(self):
         """간단한 LLM Agent를 초기화합니다."""
-        agent = create_tool_calling_agent(self.llm, self.tools, edie_agent_prompt)
+        agent = create_tool_calling_agent(self.llm, self.tools, edie_robot_system_simple_prompt_obj)
         return agent
     
     def init_executor(self):

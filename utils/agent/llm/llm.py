@@ -12,7 +12,7 @@ load_dotenv()
 # env_path = os.path.join(ros_ws, "src", "edie8_llm", ".env")
 # load_dotenv(dotenv_path=env_path)
 
-def get_llm_api(model_name="gpt-3.5-turbo",temperature=0.3):
+def get_llm_api(model_name="gpt-4.1-mini",temperature=0.3):
     # llm = ChatOllama(model="qwen3:1.7b", temperature=temperature)
     
     llm = ChatOpenAI(model_name=model_name, temperature=temperature)
