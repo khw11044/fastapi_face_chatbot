@@ -31,6 +31,12 @@ async def get_index():
     with open("static/index.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read(), status_code=200)
 
+# 터치&레이저 페이지 서빙
+@app.get("/touch-laser", response_class=HTMLResponse)
+async def get_touch_laser():
+    with open("static/touch_laser.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read(), status_code=200)
+
 # 앱 시작 시 초기화
 @app.on_event("startup")
 async def startup_event():

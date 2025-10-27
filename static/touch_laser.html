@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>터치&레이저 - EDIE</title>
+    
+    <!-- CSS 파일들 -->
+    <link rel="stylesheet" href="/static/styles/main.css">
+    <link rel="stylesheet" href="/static/styles/navbar.css">
+    <style>
+        /* 터치&레이저 페이지 전용 스타일 */
+        .touch-laser-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 3fr 1fr;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+        }
+        
+        /* 중앙 수직선 */
+        .vertical-divider {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        
+        /* 하단 1/4 수평선 */
+        .horizontal-divider {
+            position: absolute;
+            left: 0;
+            top: 75%;
+            width: 100%;
+            height: 3px;
+            background-color: rgba(255, 255, 255, 0.3);
+            z-index: 10;
+        }
+        
+        /* 각 영역 */
+        .section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .section-title {
+            color: white;
+            font-size: 2em;
+            font-weight: 600;
+            text-align: center;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 터치센서 영역 (좌상단) */
+        .touch-top {
+            grid-column: 1;
+            grid-row: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding-top: 100px;
+            padding-bottom: 40px;
+        }
+        
+        /* 검은색 원 */
+        .circle {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        /* 흰색 원 (70% 크기) */
+        .white-circle {
+            width: 210px;
+            height: 210px;
+            border-radius: 50%;
+            background-color: white;
+        }
+        
+        /* 초록색 타원 (가로로 눞힌 타원) */
+        .green-oval {
+            position: absolute;
+            width: 40px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: #00ff00;
+        }
+        
+        /* 12시 방향 */
+        .green-oval-12 {
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* 2시 방향 */
+        .green-oval-2 {
+            top: 50px;
+            right: 38px;
+        }
+        
+        /* 4시 방향 */
+        .green-oval-4 {
+            bottom: 50px;
+            right: 40px;
+        }
+        
+        /* 8시 방향 */
+        .green-oval-8 {
+            bottom: 50px;
+            left: 40px;
+        }
+        
+        /* 10시 방향 */
+        .green-oval-10 {
+            top: 50px;
+            left: 38px;
+        }
+        
+        /* 타원 */
+        .ellipse {
+            width: 300px;
+            height: 400px;
+            border-radius: 50%;
+            background-color: black;
+            clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        
+        /* 타원 안의 작은 초록색 타원 */
+        .ellipse-oval {
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #00ff00;
+        }
+        
+        /* 1층 (최하단) - 중앙 1개 */
+        .ellipse-oval-1 {
+            top: 175px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* 2층 - 3개 */
+        .ellipse-oval-2-left {
+            top: 110px;
+            left: 60px;
+        }
+        
+        .ellipse-oval-2-center {
+            top: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .ellipse-oval-2-right {
+            top: 110px;
+            right: 60px;
+        }
+        
+        /* 3층 - 3개 */
+        .ellipse-oval-3-left {
+            top: 45px;
+            left: 80px;
+        }
+        
+        .ellipse-oval-3-center {
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .ellipse-oval-3-right {
+            top: 45px;
+            right: 80px;
+        }
+        
+        /* 레이저 영역 (우상단) */
+        .laser-top {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        /* 터치센서 하단 (좌하단) */
+        .touch-bottom {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        
+        /* 레이저 하단 (우하단) */
+        .laser-bottom {
+            grid-column: 2;
+            grid-row: 2;
+        }
+        
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 햄버거 메뉴 버튼 -->
+    <button id="hamburger-btn" class="hamburger-menu">
+        ☰
+    </button>
+
+    <!-- 사이드바 오버레이 -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- 사이드바 -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>EDIE</h2>
+            <button id="close-sidebar" class="close-sidebar">
+                ×
+            </button>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="/" class="menu-link">
+                    <span class="menu-icon">🏠</span>
+                    <span>채팅&카메라</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/touch-laser" class="menu-link">
+                    <span class="menu-icon">🎮</span>
+                    <span>터치&레이저</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="touch-laser-container">
+        <!-- 중앙 수직선 -->
+        <div class="vertical-divider"></div>
+        
+        <!-- 하단 1/4 수평선 -->
+        <div class="horizontal-divider"></div>
+        
+        <!-- 터치센서 상단 (좌상단) -->
+        <div class="section touch-top">
+            <!-- 검은색 원 -->
+            <div class="circle">
+                <!-- 초록색 타원들 (5개 위치) -->
+                <div class="green-oval green-oval-12"></div>
+                <div class="green-oval green-oval-2"></div>
+                <div class="green-oval green-oval-4"></div>
+                <div class="green-oval green-oval-8"></div>
+                <div class="green-oval green-oval-10"></div>
+                
+                <!-- 흰색 원 -->
+                <div class="white-circle"></div>
+            </div>
+            
+            <!-- 타원 -->
+            <div class="ellipse">
+                <!-- 1층 (최하단) -->
+                <div class="ellipse-oval ellipse-oval-1"></div>
+                
+                <!-- 2층 -->
+                <div class="ellipse-oval ellipse-oval-2-left"></div>
+                <div class="ellipse-oval ellipse-oval-2-center"></div>
+                <div class="ellipse-oval ellipse-oval-2-right"></div>
+                
+                <!-- 3층 -->
+                <div class="ellipse-oval ellipse-oval-3-left"></div>
+                <div class="ellipse-oval ellipse-oval-3-center"></div>
+                <div class="ellipse-oval ellipse-oval-3-right"></div>
+            </div>
+        </div>
+        
+        <!-- 레이저 상단 (우상단) -->
+        <div class="section laser-top">
+            <h2 class="section-title">레이저</h2>
+        </div>
+        
+        <!-- 터치센서 하단 (좌하단) -->
+        <div class="section touch-bottom">
+        </div>
+        
+        <!-- 레이저 하단 (우하단) -->
+        <div class="section laser-bottom">
+        </div>
+    </div>
+
+    <!-- JavaScript 파일들 -->
+    <script src="/static/scripts/navbar.js"></script>
+</body>
+</html>

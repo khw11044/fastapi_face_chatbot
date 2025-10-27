@@ -1,0 +1,167 @@
+/* 네비게이션 스타일 */
+
+/* 햄버거 메뉴 버튼 */
+.hamburger-menu {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1001;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 15px;
+    cursor: pointer;
+    font-size: 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hamburger-menu:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.hamburger-menu:active {
+    transform: translateY(0);
+}
+
+/* 사이드바 */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 300px;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+/* 사이드바 헤더 */
+.sidebar-header {
+    padding: 30px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.close-sidebar {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.close-sidebar:hover {
+    transform: rotate(90deg);
+}
+
+/* 메뉴 목록 */
+.sidebar-menu {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+}
+
+.menu-item {
+    padding: 0;
+    margin: 0;
+}
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    padding: 18px 25px;
+    color: #333;
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: background-color 0.2s ease, padding-left 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.menu-link:hover {
+    background-color: #f8f9fa;
+    padding-left: 30px;
+    border-left-color: #667eea;
+}
+
+.menu-link.active {
+    background-color: #e9ecef;
+    border-left-color: #667eea;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.menu-icon {
+    margin-right: 15px;
+    font-size: 1.3em;
+}
+
+/* 오버레이 */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 250px;
+        left: -250px;
+    }
+    
+    .hamburger-menu {
+        top: 15px;
+        left: 15px;
+        padding: 10px 12px;
+        font-size: 20px;
+    }
+    
+    .sidebar-header {
+        padding: 25px 15px;
+    }
+    
+    .sidebar-header h2 {
+        font-size: 1.3em;
+    }
+    
+    .menu-link {
+        padding: 15px 20px;
+        font-size: 1em;
+    }
+}

@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -8,8 +11,41 @@
     <!-- CSS 파일들 -->
     <link rel="stylesheet" href="/static/styles/main.css">
     <link rel="stylesheet" href="/static/styles/chatbot.css">
+    <link rel="stylesheet" href="/static/styles/navbar.css">
 </head>
 <body>
+    <!-- 햄버거 메뉴 버튼 -->
+    <button id="hamburger-btn" class="hamburger-menu">
+        ☰
+    </button>
+
+    <!-- 사이드바 오버레이 -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- 사이드바 -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>EDIE</h2>
+            <button id="close-sidebar" class="close-sidebar">
+                ×
+            </button>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="/" class="menu-link">
+                    <span class="menu-icon">🏠</span>
+                    <span>채팅&카메라</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/touch-laser" class="menu-link">
+                    <span class="menu-icon">🎮</span>
+                    <span>터치&레이저</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
     <div class="container">
         <!-- 카메라 섹션 (왼쪽) -->
         <div class="camera-section">
@@ -65,6 +101,7 @@
     </div>
 
     <!-- JavaScript 파일들 -->
+    <script src="/static/scripts/navbar.js"></script>
     <script src="/static/scripts/chatbot.js"></script>
     <script src="/static/scripts/main.js"></script>
 </body>
