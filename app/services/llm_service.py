@@ -54,9 +54,9 @@ emotions = {
 
 def parse_emotion_from_response(response: str):
     """
-    '[감정] : <감정>' 패턴에서 감정 키워드 추출
+    '[emotion] : <감정>' 패턴에서 감정 키워드 추출
     """
-    match = re.search(r"\[감정\]\s*:\s*([a-zA-Z_]+)", response)
+    match = re.search(r"\[emotion\]\s*:\s*([a-zA-Z_]+)", response)
     if match:
         return match.group(1).strip().lower()
     return None
@@ -132,15 +132,13 @@ class LLMService:
         
         # ToolBox 초기화 (자동으로 모든 도구들 로드됨)
         self.toolbox = ToolBox()
-        # self.toolbox.add_packages([action_tool, expression_tool])   # calculation_tool
-        # self.toolbox.add_packages([action_tool, calculation_tool])   # calculation_tool
         self.toolbox.add_packages([action_tool, expression_tool])   # calculation_tool
         self.tools = self.toolbox.get_tools()
-        self.prompt = edie_agent_prompt
         
-        # Agent 초기화
-        self.agent = self.init_agent()
-        self.executor = self.init_executor()
+        
+        self.prompt = edie_agent_prompt
+        self.chain_llm = self.init_chain()
+        
         
         # ROS2 서비스 연동
         try:
@@ -158,22 +156,12 @@ class LLMService:
         # for tool in self.tools:
         #     print(f"  - {tool.name}: {tool.description}")
     
-    def init_agent(self):
-        """간단한 LLM Agent를 초기화합니다."""
-        agent = create_tool_calling_agent(self.llm, self.tools, self.prompt)
-        return agent
+    def init_chain(self):
+        """간단한 LLM 을 초기화합니다."""
+        chain = self.prompt | self.llm | StrOutputParser()
+        return chain
     
-    def init_executor(self):
-        """AgentExecutor를 초기화합니다."""
-        executor = AgentExecutor(
-            agent=self.agent,
-            tools=self.tools,
-            verbose=True,
-            return_intermediate_steps=True,
-            handle_parsing_errors=True,
-            max_iterations=10,
-        )
-        return executor
+    
     
     def get_chat_history(self, session_id: str):
         """세션 기록을 가져오는 함수"""
@@ -195,7 +183,7 @@ class LLMService:
             
             # RunnableWithMessageHistory를 사용한 대화형 Agent
             conversational_agent = RunnableWithMessageHistory(      
-                self.executor,                              # AgentExecutor 사용
+                self.chain_llm,                              # AgentExecutor 사용
                 self.get_chat_history,                      # 세션 기록을 가져오는 함수
                 input_messages_key="input",                 # 입력 메시지의 키
                 history_messages_key="chat_history",        # 기록 메시지의 키
@@ -208,45 +196,50 @@ class LLMService:
                 {"configurable": {"session_id": self.current_session_id}}
             )
             
-            # Agent 결과에서 최종 응답 추출
-            response = result.get("output", "응답을 생성할 수 없습니다.")
             
-            # 중간 단계 로깅 (도구 사용 내역)
-            intermediate_steps = result.get("intermediate_steps", [])
-            if intermediate_steps:
-                print(f"[도구 사용 내역]:")
-                for i, (action, observation) in enumerate(intermediate_steps):
-                    print(f"  {i+1}. {action.tool}: {action.tool_input}")
-                    print(f"     결과: {observation}")
+            print(f"result: {result} >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            
+            
+            # 도구 미사용 시 감정 파싱 및 자동 표현
+            emotion = parse_emotion_from_response(result)
+            
+            print(f"emotion: {emotion} >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            
+            
+            action_index = get_action_index_from_emotion(emotion)
+            
+            print(f"action_index: {action_index} >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            
+            expression_result = ""
+            if action_index:
+                try:
+                    # expression_tool.call_expression_action은 toolbox에 등록되어 있으므로 직접 호출
+                    expression_result = self.toolbox.get_tool("call_expression_action").run({"action_index": action_index})
+                except Exception as e:
+                    expression_result = f"감정 퍼블리시 실패: {e}"
             else:
-                # 도구 미사용 시 감정 파싱 및 자동 표현
-                emotion = parse_emotion_from_response(response)
-                action_index = get_action_index_from_emotion(emotion)
-                expression_result = ""
-                if action_index:
-                    try:
-                        # expression_tool.call_expression_action은 toolbox에 등록되어 있으므로 직접 호출
-                        expression_result = self.toolbox.get_tool("call_expression_action").run({"action_index": action_index})
-                    except Exception as e:
-                        expression_result = f"감정 퍼블리시 실패: {e}"
-                else:
-                    expression_result = "감정 매핑 실패"
-                image_path = get_emotion_image_path(emotion)
-                # 응답 포맷 확장
-                response = f"{response}\n[감정이미지]: {image_path}\n[표현결과]: {expression_result}"
+                expression_result = "감정 매핑 실패"
+                
+            print(f"expression_result: {expression_result} >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                
+            image_path = get_emotion_image_path(emotion)
             
+            # 응답 포맷 확장
+            # response = f"{result}\n[감정이미지]: {image_path}\n[표현결과]: {expression_result}"
+        
+        
             # 데이터베이스에 대화 내용 저장
             await asyncio.to_thread(
                 self.db_manager.save_conversation,
                 self.current_session_id,
                 user_message,
-                response
+                result
             )
             
             # ROS2 토픽으로 LLM 응답 발행
             if self.ros2_service:
                 try:
-                    success = self.ros2_service.publish_llm_response(response)
+                    success = self.ros2_service.publish_llm_response(result)
                     if success:
                         print(f"📤 LLM 응답이 ROS2 토픽으로 발행됨: /edie8/llm/output")
                     else:
@@ -254,7 +247,7 @@ class LLMService:
                 except Exception as ros_error:
                     print(f"⚠️ ROS2 토픽 발행 중 오류: {ros_error}")
             
-            return response
+            return result
             
         except Exception as e:
             print(f"Error generating response: {e}")

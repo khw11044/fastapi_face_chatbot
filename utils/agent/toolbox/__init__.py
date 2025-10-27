@@ -1,4 +1,3 @@
-
 from typing import Literal, List, Optional
 from langchain.agents import Tool
 
@@ -22,6 +21,18 @@ class ToolBox:
   
     def get_tools(self) -> List[Tool]:
         return self.__tools
+    
+    def get_tool(self, tool_name: str) -> Optional[Tool]:
+        """
+        특정 이름의 도구를 반환합니다.
+        
+        :param tool_name: 찾을 도구의 이름
+        :return: 도구 객체 또는 None
+        """
+        for tool in self.__tools:
+            if tool.name == tool_name:
+                return tool
+        return None
 
     def __add_tool(self, tool):
         if hasattr(tool, "name") and hasattr(tool, "func"):
