@@ -51,13 +51,13 @@
 
                 <!-- 입력 영역 -->
         <div class="chat-input">
-            <!-- STT 모드 토글 -->
-            <label style="margin-right:8px; display:flex; align-items:center;">
-                <input type="checkbox" id="stt-toggle" style="margin-right:4px;">
-                <span style="font-size:0.95em;">STT 모드</span>
+            <!-- STT 모드 슬라이딩 토글 -->
+            <label class="toggle-switch">
+                <input type="checkbox" id="stt-toggle">
+                <span class="toggle-slider"></span>
             </label>
             <input id="user-input" type="text" placeholder="메시지를 입력하세요..." autocomplete="off" />
-            <button id="mic-btn" title="음성 인식"><span class="material-icons">mic</span></button>
+            <button id="mic-btn" class="mic-button" title="음성 인식"><span class="material-icons">mic</span></button>
             <button id="send-btn">전송</button>
         </div>
             </div>

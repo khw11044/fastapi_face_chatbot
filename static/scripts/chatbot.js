@@ -59,6 +59,20 @@ class ChatBot {
         if (this.sttToggle) {
             this.sttToggle.addEventListener('change', (e) => {
                 this.isSttMode = e.target.checked;
+                
+                // STT 모드 활성화 시 텍스트 입력창 비활성화
+                if (this.isSttMode) {
+                    this.userInput.disabled = true;
+                    this.userInput.placeholder = '🎤 STT 모드 활성화 (스페이스바로 음성 인식)';
+                    this.userInput.style.backgroundColor = '#f8f9fa';
+                } else {
+                    // 로그인 상태에 따라 입력창 활성화
+                    if (this.currentUserId) {
+                        this.userInput.disabled = false;
+                        this.userInput.placeholder = '메시지를 입력하세요...';
+                        this.userInput.style.backgroundColor = '';
+                    }
+                }
             });
         }
 
@@ -74,6 +88,7 @@ class ChatBot {
                 // 입력창, 버튼 등 포커스가 있을 때만 동작 (원치 않는 오작동 방지)
                 if (document.activeElement === this.userInput || document.activeElement === document.body) {
                     this.isSpaceRecording = true;
+                    this.micButton.classList.add('stt-recording');
                     this.userInput.placeholder = '🎤 스페이스바 누르는 동안 인식 중...';
                     await this.startRecording();
                 }
@@ -86,6 +101,7 @@ class ChatBot {
                 this.isSpaceRecording
             ) {
                 this.isSpaceRecording = false;
+                this.micButton.classList.remove('stt-recording');
                 this.stopRecording();
                 this.userInput.placeholder = '메시지를 입력하세요...';
             }
@@ -128,8 +144,6 @@ class ChatBot {
         
         // 이전 대화 기록 불러오기
         await this.loadChatHistory();
-        
-        this.addMessage('bot', `안녕하세요 ${userId}님! 저는 에디입니다. 🤖`);
         
         this.userInput.focus();
     }

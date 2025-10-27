@@ -208,6 +208,60 @@
     padding: 20px;
     background-color: white;
     border-top: 1px solid #e9ecef;
+    align-items: center;
+}
+
+/* 슬라이딩 토글 스위치 */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 26px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #0b93f6 0%, #0875d1 100%);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .chat-input input {
@@ -265,6 +319,11 @@
     50% {
         box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
     }
+}
+
+/* STT 모드 + 스페이스바 녹음 시 - 빨간색 배경으로 변경 */
+.mic-button.stt-recording {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
 }
 
 .chat-input button:hover:not(:disabled) {
