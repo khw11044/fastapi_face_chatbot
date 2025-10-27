@@ -13,7 +13,7 @@ from typing import Dict, List
 from dotenv import load_dotenv
 
 
-from utils.prompts.prompt import edie_agent_prompt, edie_robot_system_simple_prompt_obj
+from utils.prompts.prompt import edie_agent_prompt   # , edie_robot_system_simple_prompt_obj
 from utils.databases.database import DatabaseManager
 from utils.agent.toolbox import ToolBox
 from utils.agent.toolbox import calculation as calculation_tool
@@ -125,6 +125,7 @@ class LLMService:
         
         # 데이터베이스 경로 설정
         self.db_path = os.path.join(self.chats_dir, "chat_history.db")
+        print("self.db_path :",self.db_path)
         
         # 데이터베이스 매니저 초기화
         self.db_manager = DatabaseManager(self.db_path)
@@ -135,6 +136,7 @@ class LLMService:
         # self.toolbox.add_packages([action_tool, calculation_tool])   # calculation_tool
         self.toolbox.add_packages([action_tool, expression_tool])   # calculation_tool
         self.tools = self.toolbox.get_tools()
+        self.prompt = edie_agent_prompt
         
         # Agent 초기화
         self.agent = self.init_agent()
@@ -158,7 +160,7 @@ class LLMService:
     
     def init_agent(self):
         """간단한 LLM Agent를 초기화합니다."""
-        agent = create_tool_calling_agent(self.llm, self.tools, edie_robot_system_simple_prompt_obj)
+        agent = create_tool_calling_agent(self.llm, self.tools, self.prompt)
         return agent
     
     def init_executor(self):
