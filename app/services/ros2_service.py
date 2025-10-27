@@ -1,8 +1,12 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, UInt8, Float64MultiArray
+from sensor_msgs.msg import Image
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 import threading
+import cv2
+import numpy as np
+from cv_bridge import CvBridge
 
 
 class ROS2PublisherService:
@@ -10,6 +14,7 @@ class ROS2PublisherService:
     ROS2 Publisher 서비스
     STT로 인식된 텍스트를 '/edie8/llm/input' 토픽으로 발행
     LLM Agent 응답을 '/edie8/llm/output' 토픽으로 발행
+    이미지 토픽 구독 및 스트리밍
     """
     def __init__(self):
         self.node = None
@@ -18,8 +23,14 @@ class ROS2PublisherService:
         self.emotion_publisher = None
         self.left_ear_publisher = None
         self.right_ear_publisher = None
+        self.image_subscriber = None
         self.spin_thread = None
         self.initialized = False
+        
+        # 이미지 관련
+        self.bridge = CvBridge()
+        self.latest_frame = None
+        self.frame_lock = threading.Lock()
         
     def initialize(self):
         """ROS2 노드 및 Publisher들 초기화"""
@@ -66,6 +77,14 @@ class ROS2PublisherService:
                 qos_profile
             )
 
+            # Image subscriber (BEST_EFFORT)
+            self.image_subscriber = self.node.create_subscription(
+                Image,
+                '/edie8/vision/image_raw',
+                self._image_callback,
+                qos_profile
+            )
+
             # 별도 스레드에서 spin 실행
             self.spin_thread = threading.Thread(
                 target=rclpy.spin,
@@ -75,10 +94,11 @@ class ROS2PublisherService:
             self.spin_thread.start()
             
             self.initialized = True
-            print("✅ ROS2 Publishers initialized:")
+            print("✅ ROS2 Publishers/Subscribers initialized:")
             print("   - /edie8/llm/input (STT → LLM)")
             print("   - /edie8/llm/output (LLM → Others)")
             print("   - /edie8/emotion/action_index (Emotion, BEST_EFFORT)")
+            print("   - /edie8/vision/image_raw (Image Subscriber, BEST_EFFORT)")
             
         except Exception as e:
             print(f"❌ ROS2 initialization failed: {e}")
@@ -183,6 +203,33 @@ class ROS2PublisherService:
         except Exception as e:
             print(f"❌ Failed to publish ear positions: {e}")
             return False
+
+    def _image_callback(self, msg: Image):
+        """
+        이미지 토픽 콜백 함수
+        Args:
+            msg (Image): ROS2 Image 메시지
+        """
+        try:
+            # ROS Image → OpenCV Image 변환
+            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+            
+            # 최신 프레임 업데이트 (스레드 안전)
+            with self.frame_lock:
+                self.latest_frame = cv_image
+                
+        except Exception as e:
+            if self.node:
+                self.node.get_logger().error(f'❌ Image conversion failed: {e}')
+
+    def get_latest_frame(self):
+        """
+        최신 프레임 반환
+        Returns:
+            numpy.ndarray or None: 최신 OpenCV 이미지
+        """
+        with self.frame_lock:
+            return self.latest_frame.copy() if self.latest_frame is not None else None
 
     def shutdown(self):
         """ROS2 노드 종료"""

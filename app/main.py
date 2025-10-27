@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import chatbot, speech
+from .routers import chatbot, speech, camera
 from .services.ros2_service import ros2_publisher
 import os
 
@@ -23,6 +23,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # 라우터 등록
 app.include_router(chatbot.router, prefix="/chatbot", tags=["Chatbot"])
 app.include_router(speech.router, prefix="/speech", tags=["Speech"])
+app.include_router(camera.router, prefix="/camera", tags=["Camera"])
 
 # 메인 페이지 서빙
 @app.get("/", response_class=HTMLResponse)

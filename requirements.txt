@@ -23,6 +23,8 @@ python-multipart
 
 # ROS2 dependencies
 rclpy
+# cv_bridge - ROS2 system package required
+# Installation: sudo apt install ros-humble-cv-bridge (for ROS2 Humble)
 
 # FFmpeg for audio processing (if using conda/pip)
 # Note: System installation may be required: sudo apt install ffmpeg

@@ -2,15 +2,12 @@
 
 /* 챗봇 섹션 */
 .chat-section {
-    width: 500px;
-    max-width: 90%;
     display: flex;
     flex-direction: column;
 }
 
 .chat-container {
-    height: 85vh;
-    max-height: 800px;
+    height: 100%;
     background-color: white;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -314,26 +311,13 @@
 
 /* 챗봇 반응형 디자인 */
 @media (max-width: 1200px) {
-    .chat-section {
-        flex: 0 0 350px;
-        order: 2;
-    }
-    
     .chat-container {
-        height: 350px;
-        min-height: 350px;
+        border-radius: 10px;
     }
 }
 
 @media (max-width: 768px) {
-    .chat-section {
-        flex: 0 0 300px;
-        order: 2;
-    }
-    
     .chat-container {
-        height: 300px;
-        min-height: 300px;
         border-radius: 10px;
     }
     

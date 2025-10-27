@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>에디</title>
+    <title>EDIE</title>
     
     <!-- CSS 파일들 -->
     <link rel="stylesheet" href="/static/styles/main.css">
@@ -11,12 +11,22 @@
 </head>
 <body>
     <div class="container">
-        <!-- 챗봇 섹션 -->
+        <!-- 카메라 섹션 (왼쪽) -->
+        <div class="camera-section">
+            <div class="camera-container">
+                <h2>Camera View</h2>
+                <div class="camera-viewer">
+                    <img src="/camera/stream" alt="Camera Stream" id="camera-stream">
+                </div>
+            </div>
+        </div>
+
+        <!-- 챗봇 섹션 (오른쪽) -->
         <div class="chat-section">
             <div class="chat-container">
                 <!-- 챗봇 헤더 -->
                 <div class="chat-header">
-                    <h1>에디</h1>
+                    <h1>EDIE</h1>
                     <button id="clear-btn" class="clear-button">대화 초기화</button>
                 </div>
 
