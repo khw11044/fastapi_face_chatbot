@@ -21,6 +21,8 @@ facenet-pytorch
 mediapipe
 python-multipart
 
+numpy<2.0.0
+
 # ROS2 dependencies
 rclpy
 # cv_bridge - ROS2 system package required

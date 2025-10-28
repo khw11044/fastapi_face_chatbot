@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import chatbot, speech, camera
+from .routers import chatbot, speech, camera, sensor
 from .services.ros2_service import ros2_publisher
 import os
 
@@ -24,6 +24,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(chatbot.router, prefix="/chatbot", tags=["Chatbot"])
 app.include_router(speech.router, prefix="/speech", tags=["Speech"])
 app.include_router(camera.router, prefix="/camera", tags=["Camera"])
+app.include_router(sensor.router, prefix="/sensor", tags=["Sensor"])
 
 # 메인 페이지 서빙
 @app.get("/", response_class=HTMLResponse)
@@ -50,6 +51,7 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️ ROS2 initialization failed: {e}")
         print("⚠️ Continuing without ROS2 support")
+    
 
 # 앱 종료 시 정리
 @app.on_event("shutdown")

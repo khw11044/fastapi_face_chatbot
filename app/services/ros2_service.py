@@ -1,12 +1,13 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String, UInt8, Float64MultiArray
+from std_msgs.msg import String, UInt8, Float64MultiArray, Float32MultiArray, Int16MultiArray
 from sensor_msgs.msg import Image
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 import threading
 import cv2
 import numpy as np
 from cv_bridge import CvBridge
+from typing import Dict
 
 
 class ROS2PublisherService:
@@ -31,6 +32,32 @@ class ROS2PublisherService:
         self.bridge = CvBridge()
         self.latest_frame = None
         self.frame_lock = threading.Lock()
+        
+        # 센서 값 관련
+        self.sensor_values: Dict[str, float] = {
+            'front_left': 0,
+            'front_right': 0,
+            'bottom_left': 0,
+            'bottom_right': 0,
+        }
+        self.sensor_lock = threading.Lock()
+        
+        # FSR 센서 값 관련
+        self.fsr_values: Dict[str, int] = {
+            'left_hip': 0,
+            'middle_hip': 0,
+            'right_hip': 0,
+            'left_back': 0,
+            'middle_back': 0,
+            'right_back': 0,
+            'head': 0,
+            'left_cheek': 0,
+            'right_cheek': 0,
+            'left_temple': 0,
+            'right_temple': 0,
+            'right_temple_dup': 0,
+        }
+        self.fsr_lock = threading.Lock()
         
     def initialize(self):
         """ROS2 노드 및 Publisher들 초기화"""
@@ -84,6 +111,29 @@ class ROS2PublisherService:
                 self._image_callback,
                 qos_profile
             )
+            
+            # Laser sensor subscribers
+            self.node.create_subscription(
+                Int16MultiArray,
+                '/edie8/sensor/front/laser',
+                self._front_laser_callback,
+                10
+            )
+            
+            self.node.create_subscription(
+                Int16MultiArray,
+                '/edie8/sensor/bottom/laser_values',
+                self._bottom_laser_callback,
+                10
+            )
+            
+            # FSR sensor subscriber
+            self.node.create_subscription(
+                Int16MultiArray,
+                '/edie8/sensor/fsr',
+                self._fsr_callback,
+                10
+            )
 
             # 별도 스레드에서 spin 실행
             self.spin_thread = threading.Thread(
@@ -99,6 +149,8 @@ class ROS2PublisherService:
             print("   - /edie8/llm/output (LLM → Others)")
             print("   - /edie8/emotion/action_index (Emotion, BEST_EFFORT)")
             print("   - /edie8/vision/image_raw (Image Subscriber, BEST_EFFORT)")
+            print("   - /edie8/sensor/front/laser (Front Laser)")
+            print("   - /edie8/sensor/bottom/laser_values (Bottom Laser)")
             
         except Exception as e:
             print(f"❌ ROS2 initialization failed: {e}")
@@ -221,6 +273,58 @@ class ROS2PublisherService:
         except Exception as e:
             if self.node:
                 self.node.get_logger().error(f'❌ Image conversion failed: {e}')
+    
+    def _front_laser_callback(self, msg: Int16MultiArray):
+        """Front 레이저 콜백"""
+        try:
+            with self.sensor_lock:
+                if len(msg.data) >= 2:
+                    self.sensor_values['front_left'] = int(msg.data[0])
+                    self.sensor_values['front_right'] = int(msg.data[1])
+                    # print(f"📊 [Front Laser] left={self.sensor_values['front_left']}, right={self.sensor_values['front_right']}")
+        except Exception as e:
+            print(f"❌ Front laser callback error: {e}")
+    
+    def _bottom_laser_callback(self, msg: Int16MultiArray):
+        """Bottom 레이저 콜백"""
+        try:
+            with self.sensor_lock:
+                if len(msg.data) >= 2:
+                    self.sensor_values['bottom_left'] = int(msg.data[0])
+                    self.sensor_values['bottom_right'] = int(msg.data[1])
+                    # print(f"📊 [Bottom Laser] left={self.sensor_values['bottom_left']}, right={self.sensor_values['bottom_right']}")
+        except Exception as e:
+            print(f"❌ Bottom laser callback error: {e}")
+    
+    def get_sensor_values(self) -> Dict[str, int]:
+        """현재 센서 값 반환"""
+        with self.sensor_lock:
+            return self.sensor_values.copy()
+    
+    def get_fsr_values(self) -> Dict[str, int]:
+        """현재 FSR 센서 값 반환"""
+        with self.fsr_lock:
+            return self.fsr_values.copy()
+    
+    def _fsr_callback(self, msg: Int16MultiArray):
+        """FSR 센서 콜백"""
+        try:
+            with self.fsr_lock:
+                if len(msg.data) >= 12:
+                    self.fsr_values['left_hip'] = int(msg.data[0])
+                    self.fsr_values['middle_hip'] = int(msg.data[1])
+                    self.fsr_values['right_hip'] = int(msg.data[2])
+                    self.fsr_values['left_back'] = int(msg.data[3])
+                    self.fsr_values['middle_back'] = int(msg.data[4])
+                    self.fsr_values['right_back'] = int(msg.data[5])
+                    self.fsr_values['head'] = int(msg.data[6])
+                    self.fsr_values['left_cheek'] = int(msg.data[7])
+                    self.fsr_values['right_cheek'] = int(msg.data[8])
+                    self.fsr_values['left_temple'] = int(msg.data[9])
+                    self.fsr_values['right_temple'] = int(msg.data[10])
+                    self.fsr_values['right_temple_dup'] = int(msg.data[11])
+        except Exception as e:
+            print(f"❌ FSR callback error: {e}")
 
     def get_latest_frame(self):
         """
