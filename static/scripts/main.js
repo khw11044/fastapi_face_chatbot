@@ -40,6 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 감정 통계 WebSocket 연결
     initEmotionStatsWebSocket();
+    
+    // 녹음 토글 버튼 초기화
+    initRecordToggle();
 });
 
 // 배터리 WebSocket 관리
@@ -150,9 +153,16 @@ function updateEmotionVisualization(percentages) {
     
     // 1. 최댓값 찾기
     const maxPercentage = Math.max(...Object.values(percentages));
-    const maxEmotion = Object.keys(percentages).reduce((a, b) => 
-        percentages[a] > percentages[b] ? a : b
-    );
+    
+    // 모든 감정이 0%일 때는 "curiosity"를 기본값으로 설정
+    let maxEmotion;
+    if (maxPercentage === 0) {
+        maxEmotion = "curiosity";
+    } else {
+        maxEmotion = Object.keys(percentages).reduce((a, b) => 
+            percentages[a] > percentages[b] ? a : b
+        );
+    }
     
     // 2. 각 감정별 좌표 계산 (정규화 + 스케일링)
     const points = [];
@@ -208,4 +218,53 @@ function updateEmotionVisualization(percentages) {
     });
     
     console.log(`😊 Emotion stats updated (max: ${maxEmotion} ${maxPercentage.toFixed(1)}%):`, percentages);
+}
+
+// 녹음 토글 버튼 관리
+let isRecording = false;
+
+function initRecordToggle() {
+    const recordBtn = document.getElementById('record-toggle-btn');
+    
+    if (!recordBtn) {
+        console.warn('⚠️ Record toggle button not found');
+        return;
+    }
+    
+    recordBtn.addEventListener('click', async () => {
+        // 토글
+        isRecording = !isRecording;
+        
+        try {
+            // FastAPI로 전송
+            const response = await fetch('/sensor/record-toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_recording: isRecording })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // UI 업데이트
+                if (isRecording) {
+                    recordBtn.classList.add('recording');
+                    recordBtn.textContent = '녹음 중지';
+                    console.log('🎤 녹음 시작');
+                } else {
+                    recordBtn.classList.remove('recording');
+                    recordBtn.textContent = '녹음';
+                    console.log('🎤 녹음 중지');
+                }
+            } else {
+                console.error('❌ Record toggle failed:', data.message);
+                // 실패 시 상태 원복
+                isRecording = !isRecording;
+            }
+        } catch (error) {
+            console.error('❌ Record toggle error:', error);
+            // 오류 시 상태 원복
+            isRecording = !isRecording;
+        }
+    });
 }

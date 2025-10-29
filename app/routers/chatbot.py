@@ -66,6 +66,10 @@ async def archive_database():
     """DB 전체를 아카이빙하고 새로 시작합니다."""
     try:
         archive_name = llm_service.archive_and_reset_database()
+        
+        # 감정 히스토리도 초기화
+        ros2_publisher.clear_emotion_history()
+        
         return {
             "message": "Database archived successfully",
             "archive_name": archive_name

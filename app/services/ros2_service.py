@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String, UInt8, Float64MultiArray, Float32MultiArray, Int16MultiArray, Float32
+from std_msgs.msg import String, UInt8, Float64MultiArray, Float32MultiArray, Int16MultiArray, Float32, Bool
 from sensor_msgs.msg import Image
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 import threading
@@ -103,6 +103,13 @@ class ROS2PublisherService:
                 '/edie8/emotion/action_index',
                 qos_profile
             )
+            
+            # Record start publisher
+            self.record_start_publisher = self.node.create_publisher(
+                Bool,
+                '/edie8/sound/record_start',
+                10
+            )
 
             # Ear publishers (BEST_EFFORT)
             self.left_ear_publisher = self.node.create_publisher(
@@ -182,6 +189,7 @@ class ROS2PublisherService:
             print("   - /edie8/sensor/bottom/laser_values (Bottom Laser)")
             print("   - /edie8/battery/voltage (Battery)")
             print("   - /edie8/emotion/action_index (Emotion Stats)")
+            print("   - /edie8/sound/record_start (Record Toggle)")
             
         except Exception as e:
             print(f"❌ ROS2 initialization failed: {e}")
@@ -286,6 +294,29 @@ class ROS2PublisherService:
         except Exception as e:
             print(f"❌ Failed to publish ear positions: {e}")
             return False
+    
+    def publish_record_start(self, is_recording: bool) -> bool:
+        """
+        녹음 시작/중지 신호를 퍼블리시
+        Args:
+            is_recording (bool): True = 녹음 시작, False = 녹음 중지
+        Returns:
+            bool: 성공 여부
+        """
+        if not self.initialized or self.record_start_publisher is None:
+            print("⚠️ ROS2 not initialized, skipping record start publish")
+            return False
+        try:
+            msg = Bool()
+            msg.data = is_recording
+            self.record_start_publisher.publish(msg)
+            if self.node:
+                status = "시작" if is_recording else "중지"
+                self.node.get_logger().info(f'🎤 Published to /edie8/sound/record_start: {status}')
+            return True
+        except Exception as e:
+            print(f"❌ Failed to publish record start: {e}")
+            return False
 
     def _image_callback(self, msg: Image):
         """
@@ -388,6 +419,12 @@ class ROS2PublisherService:
                 self.emotion_history.append(action_index)
         except Exception as e:
             print(f"❌ Emotion action callback error: {e}")
+    
+    def clear_emotion_history(self):
+        """감정 히스토리 초기화"""
+        with self.emotion_lock:
+            self.emotion_history.clear()
+        print("🧹 Emotion history cleared")
     
     def get_emotion_percentages(self) -> Dict[str, float]:
         """최근 100개 action_index 기준 8개 감정별 백분율 반환"""

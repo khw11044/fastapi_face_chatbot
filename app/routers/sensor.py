@@ -104,3 +104,29 @@ async def websocket_emotion_stats(websocket: WebSocket):
     except Exception as e:
         print(f"❌ Emotion stats WebSocket error: {e}")
         await websocket.close(code=1000)
+
+
+@router.post("/record-toggle")
+async def record_toggle(request: dict):
+    """녹음 시작/중지 토글"""
+    try:
+        is_recording = request.get("is_recording", False)
+        success = ros2_publisher.publish_record_start(is_recording)
+        
+        if success:
+            status = "시작" if is_recording else "중지"
+            return {
+                "success": True,
+                "is_recording": is_recording,
+                "message": f"녹음 {status}"
+            }
+        else:
+            return {
+                "success": False,
+                "message": "ROS2 토픽 발행 실패"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": str(e)
+        }
