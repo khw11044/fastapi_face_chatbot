@@ -46,3 +46,32 @@ async def websocket_laser_sensors(websocket: WebSocket):
     except Exception as e:
         print(f"❌ WebSocket error: {e}")
         await websocket.close(code=1000)
+
+
+@router.websocket("/ws/battery")
+async def websocket_battery(websocket: WebSocket):
+    """
+    웹소켓을 통해 1분마다 배터리 상태 전송
+    """
+    await websocket.accept()
+    
+    try:
+        while True:
+            # 배터리 백분율 가져오기 (ros2_publisher에서)
+            percentage = ros2_publisher.get_battery_percentage()
+            voltage = ros2_publisher.get_battery_voltage()
+            
+            # 웹소켓으로 전송
+            await websocket.send_json({
+                "percentage": round(percentage, 1),
+                "voltage": round(voltage, 2)
+            })
+            
+            # 60초(1분) 주기로 전송
+            await asyncio.sleep(60)
+            
+    except WebSocketDisconnect:
+        print("❌ Battery WebSocket client disconnected")
+    except Exception as e:
+        print(f"❌ Battery WebSocket error: {e}")
+        await websocket.close(code=1000)

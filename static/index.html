@@ -60,16 +60,43 @@
                     </div>
                 </div>
             </div>
-            <div class="emotion-row">
-                <div class="user-emotion-box">사용자 감정<br><span class="emotion-label">(emotion detection)</span></div>
-                <div class="edie-emotion-box">에디 감정</div>
-            </div>
+                <div class="emotion-container">
+                    <div class="emotion-left">
+                        <div class="user-emotion-box">사용자 감정<br><span class="emotion-label"></span></div>
+                        <!-- (추후 사용자 감정 그래프/팔각형 등 추가 가능) -->
+                    </div>
+                    <div class="emotion-divider"></div>
+                    <div class="emotion-right">
+                        <div class="edie-emotion-box">에디 감정</div>
+                        <div class="octagon-stack">
+                            <svg width="320" height="320" viewBox="0 0 320 320">
+                                <!-- 4중 정팔각형 (중심 160,160) -->
+                                <polygon points="160,52 236.4,83.6 268,160 236.4,236.4 160,268 83.6,236.4 52,160 83.6,83.6" fill="none" stroke="#1a7f8a" stroke-width="4"/>
+                                <polygon points="160,80 217.6,102.4 240,160 217.6,217.6 160,240 102.4,217.6 80,160 102.4,102.4" fill="none" stroke="#1a7f8a" stroke-width="2.5"/>
+                                <polygon points="160,108 198.8,121.2 212,160 198.8,198.8 160,212 121.2,198.8 108,160 121.2,121.2" fill="none" stroke="#1a7f8a" stroke-width="1.5"/>
+                                <polygon points="160,128 190,141.6 196,160 190,178.4 160,192 130,178.4 124,160 130,141.6" fill="none" stroke="#1a7f8a" stroke-width="1"/>
+                                <!-- 꼭짓점 감정 라벨 (320 기준) -->
+                                <text x="160" y="30" text-anchor="middle" font-size="14" fill="#222">궁금함</text>
+                                <text x="260" y="65" text-anchor="middle" font-size="14" fill="#222">기쁨</text>
+                                <text x="300" y="160" text-anchor="middle" font-size="14" fill="#222">실망</text>
+                                <text x="272" y="260" text-anchor="middle" font-size="14" fill="#222">어지러움</text>
+                                <text x="160" y="300" text-anchor="middle" font-size="14" fill="#222">사랑</text>
+                                <text x="48" y="260" text-anchor="middle" font-size="14" fill="#222">슬픔</text>
+                                <text x="14" y="160" text-anchor="middle" font-size="14" fill="#222">졸림</text>
+                                <text x="55" y="65" text-anchor="middle" font-size="14" fill="#222">놀람</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
         </div>
 
         <!-- 챗봇/상단 정보 영역 -->
         <div class="chat-section">
             <div class="chat-info-box">
-                <div class="battery-box">배터리</div>
+                <div class="battery-box">
+                    <div class="battery-fill" id="battery-fill"></div>
+                    <div class="battery-text" id="battery-text">--%</div>
+                </div>
                 <div class="mic-box">마이크 데시벨 시각화 <span class="mic-record-btn">녹음</span></div>
             </div>
             <div class="chat-container">

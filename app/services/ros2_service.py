@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String, UInt8, Float64MultiArray, Float32MultiArray, Int16MultiArray
+from std_msgs.msg import String, UInt8, Float64MultiArray, Float32MultiArray, Int16MultiArray, Float32
 from sensor_msgs.msg import Image
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 import threading
@@ -58,6 +58,13 @@ class ROS2PublisherService:
             'right_temple_dup': 0,
         }
         self.fsr_lock = threading.Lock()
+        
+        # 배터리 값 관련
+        self.battery_voltage: float = 0.0
+        self.battery_percentage: float = 0.0
+        self.battery_lock = threading.Lock()
+        self.MIN_VOLTAGE = 12.8
+        self.MAX_VOLTAGE = 16.8
         
     def initialize(self):
         """ROS2 노드 및 Publisher들 초기화"""
@@ -134,6 +141,14 @@ class ROS2PublisherService:
                 self._fsr_callback,
                 10
             )
+            
+            # Battery voltage subscriber
+            self.node.create_subscription(
+                Float32,
+                '/edie8/battery/voltage',
+                self._battery_callback,
+                10
+            )
 
             # 별도 스레드에서 spin 실행
             self.spin_thread = threading.Thread(
@@ -149,8 +164,10 @@ class ROS2PublisherService:
             print("   - /edie8/llm/output (LLM → Others)")
             print("   - /edie8/emotion/action_index (Emotion, BEST_EFFORT)")
             print("   - /edie8/vision/image_raw (Image Subscriber, BEST_EFFORT)")
+            print("   - /edie8/sensor/fsr")
             print("   - /edie8/sensor/front/laser (Front Laser)")
             print("   - /edie8/sensor/bottom/laser_values (Bottom Laser)")
+            print("   - /edie8/battery/voltage (Battery)")
             
         except Exception as e:
             print(f"❌ ROS2 initialization failed: {e}")
@@ -325,6 +342,29 @@ class ROS2PublisherService:
                     self.fsr_values['right_temple_dup'] = int(msg.data[11])
         except Exception as e:
             print(f"❌ FSR callback error: {e}")
+    
+    def _battery_callback(self, msg: Float32):
+        """배터리 전압 콜백"""
+        try:
+            voltage = msg.data
+            percentage = ((voltage - self.MIN_VOLTAGE) / (self.MAX_VOLTAGE - self.MIN_VOLTAGE)) * 100
+            percentage = max(0.0, min(100.0, percentage))
+            
+            with self.battery_lock:
+                self.battery_voltage = voltage
+                self.battery_percentage = percentage
+        except Exception as e:
+            print(f"❌ Battery callback error: {e}")
+    
+    def get_battery_percentage(self) -> float:
+        """현재 배터리 백분율 반환"""
+        with self.battery_lock:
+            return self.battery_percentage
+    
+    def get_battery_voltage(self) -> float:
+        """현재 배터리 전압 반환"""
+        with self.battery_lock:
+            return self.battery_voltage
 
     def get_latest_frame(self):
         """

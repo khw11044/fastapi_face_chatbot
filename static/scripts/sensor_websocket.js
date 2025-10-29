@@ -41,7 +41,7 @@ class SensorWebSocketClient {
     onMessage(event) {
         try {
             const data = JSON.parse(event.data);
-            console.log('📊 [WebSocket Received]', data);
+            // console.log('📊 [WebSocket Received]', data);
             this.updateSensorDisplay(data);
         } catch (error) {
             console.error('❌ Error parsing sensor data:', error);

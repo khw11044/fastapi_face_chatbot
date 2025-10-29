@@ -45,7 +45,7 @@ async def startup_event():
     os.makedirs("./chats", exist_ok=True)
     print("Chat database directory initialized: ./chats")
     
-    # ROS2 Publisher 초기화
+    # ROS2 Publisher 초기화 (battery subscriber 포함)
     try:
         ros2_publisher.initialize()
     except Exception as e:

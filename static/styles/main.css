@@ -72,28 +72,95 @@ body {
     align-items: stretch;
 }
 
-/* 감정 박스 행 */
-.emotion-row {
+/* 감정 컨테이너 */
+.emotion-container {
+    position: relative;
+    margin-top: 18px;
+    flex: 1;
     display: flex;
     flex-direction: row;
-    gap: 18px;
-    margin-top: 18px;
-    justify-content: center;
+    min-height: 220px;
 }
 
-.user-emotion-box, .edie-emotion-box {
+/* 좌우 분할 */
+.emotion-left, .emotion-right {
     flex: 1;
-    min-width: 120px;
-    min-height: 70px;
-    border: 2px solid #888;
-    border-radius: 10px;
-    background: #f5f5f5;
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+}
+
+/* 감정 박스 행 (좌우 각각) */
+.emotion-left .user-emotion-box {
+    width: 90%;
+    margin-bottom: 18px;
+}
+.emotion-right .edie-emotion-box {
+    width: 90%;
+    margin-bottom: 18px;
+}
+
+/* 중앙 구분선 */
+.emotion-divider {
+    width: 2px;
+    background: #888;
+    height: 100%;
+    align-self: stretch;
+    z-index: 1;
+}
+
+/* 팔각형 (에디 감정 박스 아래 중앙) */
+.octagon-stack {
+    width: 320px;
+    height: 320px;
+    display: flex;
     justify-content: center;
+    align-items: flex-start;
+    margin-top: 10px;
+}
+
+.user-emotion-box, .edie-emotion-box {
+    border: 2px solid #888;
+    border-radius: 10px;
+    background: #f5f5f5;
     font-size: 1em;
     font-weight: 500;
+    padding: 10px 0;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+    min-width: 0;
+    min-height: 0;
+    box-sizing: border-box;
+}
+
+/* 중앙 구분선 */
+.emotion-divider {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: #888;
+}
+
+/* 팔각형 (오른쪽 영역) */
+.octagon-box {
+    width: 60px;
+    height: 60px;
+    margin: 18px auto 0 0;
+    margin-left: calc(50% + 9px);
+    background: #b2eaff;
+    clip-path: polygon(
+        30% 0%, 70% 0%,
+        100% 30%, 100% 70%,
+        70% 100%, 30% 100%,
+        0% 70%, 0% 30%
+    );
+    border: 2.5px solid #1a7f8a;
+    box-sizing: border-box;
 }
 
 .emotion-label {
@@ -123,6 +190,34 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+/* 배터리 프로그레스바 */
+.battery-box {
+    position: relative;
+    background: #f0f0f0;
+    overflow: hidden;
+    min-height: 40px;
+}
+
+.battery-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    transition: width 0.5s ease;
+    z-index: 0;
+}
+
+.battery-text {
+    position: relative;
+    z-index: 1;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    color: #333;
 }
 
 .mic-record-btn {

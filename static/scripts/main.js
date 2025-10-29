@@ -34,4 +34,56 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
+    
+    // 배터리 WebSocket 연결
+    initBatteryWebSocket();
 });
+
+// 배터리 WebSocket 관리
+let batteryWebSocket = null;
+
+function initBatteryWebSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/sensor/ws/battery`;
+    
+    batteryWebSocket = new WebSocket(wsUrl);
+    
+    batteryWebSocket.onopen = () => {
+        console.log('✅ Battery WebSocket connected');
+    };
+    
+    batteryWebSocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        updateBatteryUI(data.percentage, data.voltage);
+    };
+    
+    batteryWebSocket.onerror = (error) => {
+        console.error('❌ Battery WebSocket error:', error);
+    };
+    
+    batteryWebSocket.onclose = () => {
+        console.log('⚠️ Battery WebSocket disconnected. Reconnecting in 5 seconds...');
+        setTimeout(initBatteryWebSocket, 5000);
+    };
+}
+
+function updateBatteryUI(percentage, voltage) {
+    const batteryFill = document.getElementById('battery-fill');
+    const batteryText = document.getElementById('battery-text');
+    
+    if (batteryFill && batteryText) {
+        batteryFill.style.width = `${percentage}%`;
+        batteryText.textContent = `${percentage.toFixed(1)}%`;
+        
+        // 배터리 잔량에 따라 색상 변경
+        if (percentage < 20) {
+            batteryFill.style.background = 'linear-gradient(90deg, #f44336, #e57373)'; // 빨강
+        } else if (percentage < 50) {
+            batteryFill.style.background = 'linear-gradient(90deg, #ff9800, #ffb74d)'; // 주황
+        } else {
+            batteryFill.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)'; // 초록
+        }
+        
+        console.log(`🔋 Battery: ${percentage.toFixed(1)}% (${voltage.toFixed(2)}V)`);
+    }
+}
