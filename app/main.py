@@ -38,6 +38,12 @@ async def get_touch_laser():
     with open("static/touch_laser.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read(), status_code=200)
 
+# 행동트리 페이지 서빙
+@app.get("/behavior-tree", response_class=HTMLResponse)
+async def get_behavior_tree():
+    with open("static/behavior_tree.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read(), status_code=200)
+
 # 앱 시작 시 초기화
 @app.on_event("startup")
 async def startup_event():

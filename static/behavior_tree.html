@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDIE - 행동트리</title>
+    
+    <!-- CSS 파일들 -->
+    <link rel="stylesheet" href="/static/styles/main.css">
+    <link rel="stylesheet" href="/static/styles/navbar.css">
+</head>
+<body>
+    <!-- 햄버거 메뉴 버튼 -->
+    <button id="hamburger-btn" class="hamburger-menu">
+        ☰
+    </button>
+
+    <!-- 사이드바 오버레이 -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- 사이드바 -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>EDIE</h2>
+            <button id="close-sidebar" class="close-sidebar">
+                ×
+            </button>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="/" class="menu-link">
+                    <span class="menu-icon">🏠</span>
+                    <span>채팅&카메라</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/touch-laser" class="menu-link">
+                    <span class="menu-icon">🎮</span>
+                    <span>터치&레이저</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/behavior-tree" class="menu-link">
+                    <span class="menu-icon">🌳</span>
+                    <span>행동트리</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>행동트리 페이지</h1>
+        <p>추후 내용이 추가될 예정입니다.</p>
+    </div>
+
+    <!-- JavaScript 파일들 -->
+    <script src="/static/scripts/navbar.js"></script>
+</body>
+</html>
