@@ -47,25 +47,37 @@
     </nav>
 
     <div class="container">
-        <!-- 카메라 섹션 (왼쪽) -->
+        <!-- 카메라/감정/프레임 영역 -->
         <div class="camera-section">
-            <div class="camera-container">
-                <h2>Camera View</h2>
-                <div class="camera-viewer">
-                    <img src="/camera/stream" alt="Camera Stream" id="camera-stream">
+            <div class="camera-frame">
+                <div class="camera-title">에디의 시야</div>
+                <div class="camera-inner-frame">
+                    <div class="camera-container">
+                        <h2>Camera View</h2>
+                        <div class="camera-viewer">
+                            <img src="/camera/stream" alt="Camera Stream" id="camera-stream">
+                        </div>
+                    </div>
                 </div>
+            </div>
+            <div class="emotion-row">
+                <div class="user-emotion-box">사용자 감정<br><span class="emotion-label">(emotion detection)</span></div>
+                <div class="edie-emotion-box">에디 감정</div>
             </div>
         </div>
 
-        <!-- 챗봇 섹션 (오른쪽) -->
+        <!-- 챗봇/상단 정보 영역 -->
         <div class="chat-section">
+            <div class="chat-info-box">
+                <div class="battery-box">배터리</div>
+                <div class="mic-box">마이크 데시벨 시각화 <span class="mic-record-btn">녹음</span></div>
+            </div>
             <div class="chat-container">
                 <!-- 챗봇 헤더 -->
                 <div class="chat-header">
                     <h1>EDIE</h1>
                     <button id="clear-btn" class="clear-button">대화 초기화</button>
                 </div>
-
                 <!-- 사용자 ID 입력 영역 -->
                 <div class="user-id-section">
                     <div class="user-id-input">
@@ -77,25 +89,23 @@
                         <button id="logout-btn" class="logout-button">로그아웃</button>
                     </div>
                 </div>
-
                 <!-- 대화 창 -->
                 <div class="chat-box" id="chat-box">
                     <div class="message bot">
                         안녕하세요! 저는 에디입니다. 먼저 사용자 ID를 입력해주세요! 🤖
                     </div>
                 </div>
-
                 <!-- 입력 영역 -->
-        <div class="chat-input">
-            <!-- STT 모드 슬라이딩 토글 -->
-            <label class="toggle-switch">
-                <input type="checkbox" id="stt-toggle">
-                <span class="toggle-slider"></span>
-            </label>
-            <input id="user-input" type="text" placeholder="메시지를 입력하세요..." autocomplete="off" />
-            <button id="mic-btn" class="mic-button" title="음성 인식"><span class="material-icons">mic</span></button>
-            <button id="send-btn">전송</button>
-        </div>
+                <div class="chat-input">
+                    <!-- STT 모드 슬라이딩 토글 -->
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="stt-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <input id="user-input" type="text" placeholder="메시지를 입력하세요..." autocomplete="off" />
+                    <button id="mic-btn" class="mic-button" title="음성 인식"><span class="material-icons">mic</span></button>
+                    <button id="send-btn">전송</button>
+                </div>
             </div>
         </div>
     </div>
