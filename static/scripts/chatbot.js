@@ -334,36 +334,39 @@ class ChatBot {
         }
     }
 
-    // 대화 기록 초기화 함수
+    // 대화 기록 초기화 함수 (아카이빙)
     async clearChat() {
         if (!this.currentUserId || !this.sessionId) {
             alert('먼저 로그인해주세요.');
             return;
         }
         
-        if (!confirm('정말로 대화 기록을 삭제하시겠습니까?')) {
+        if (!confirm('현재 대화 기록을 아카이빙하고 새로 시작하시겠습니까?\n(기존 대화는 타임스탬프 파일로 저장됩니다)')) {
             return;
         }
         
         try {
-            const response = await fetch('/chatbot/clear', {
+            const response = await fetch('/chatbot/archive', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ session_id: this.sessionId })
+                }
             });
 
             if (response.ok) {
+                const data = await response.json();
+                console.log(`📦 Database archived: ${data.archive_name}`);
+                
                 this.chatBox.innerHTML = `
                     <div class="message bot">
-                        안녕하세요 ${this.currentUserId}님! 🤖
+                        이전 대화가 저장되었습니다. 🗂️<br>
+                        새로운 대화를 시작합니다! 안녕하세요 ${this.currentUserId}님! 🤖
                     </div>
                 `;
             }
         } catch (error) {
-            console.error('Error clearing chat:', error);
-            alert('대화 기록 삭제 중 오류가 발생했습니다.');
+            console.error('Error archiving chat:', error);
+            alert('대화 아카이빙 중 오류가 발생했습니다.');
         }
     }
 

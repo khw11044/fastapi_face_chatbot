@@ -1,5 +1,7 @@
 import asyncio
 import os
+import shutil
+from datetime import datetime
 
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
@@ -285,6 +287,37 @@ class LLMService:
             print(f"Session {session_id} history cleared.")
         except Exception as e:
             print(f"Error clearing history: {e}")
+    
+    def archive_and_reset_database(self) -> str:
+        """
+        chat_history.db → chat_history_YYYYMMDD_HHMMSS.db로 이름 변경
+        새로운 chat_history.db 자동 생성
+        
+        Returns:
+            str: 아카이브된 파일 이름
+        """
+        try:
+            # 1. 현재 시간으로 파일명 생성
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            archive_name = f"chat_history_{timestamp}.db"
+            archive_path = os.path.join(self.chats_dir, archive_name)
+            
+            # 2. DB 파일이 존재하면 이름 변경
+            if os.path.exists(self.db_path):
+                shutil.move(self.db_path, archive_path)
+                print(f"📦 Database archived: {archive_name}")
+            else:
+                print(f"⚠️ No existing database to archive")
+            
+            # 3. DatabaseManager 재초기화 (새 DB 자동 생성)
+            self.db_manager = DatabaseManager(self.db_path)
+            print(f"✅ New database created: chat_history.db")
+            
+            return archive_name
+            
+        except Exception as e:
+            print(f"❌ Archive failed: {e}")
+            raise
     
     def get_history(self, session_id: str = "default", limit: int = 10):
         """특정 세션의 대화 히스토리를 반환합니다."""

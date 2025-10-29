@@ -61,6 +61,18 @@ async def clear_chat(request: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/archive")
+async def archive_database():
+    """DB 전체를 아카이빙하고 새로 시작합니다."""
+    try:
+        archive_name = llm_service.archive_and_reset_database()
+        return {
+            "message": "Database archived successfully",
+            "archive_name": archive_name
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/history/{session_id}")
 async def get_chat_history(session_id: str, limit: int = 10):
     """특정 세션의 채팅 기록을 가져옵니다."""
