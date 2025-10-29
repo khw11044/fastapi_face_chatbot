@@ -24,17 +24,20 @@ load_dotenv()
 
 import re
 
-# 감정 키워드 → 이미지 파일명 매핑
+# 감정 키워드 → 이미지 파일명 매핑 (실제 파일명 기준)
 EMOTION_IMAGE_MAP = {
-    "curious": "curious.png",
-    "delight": "delight.png",
-    "dizzy": "dizzy.png",
-    "expressionless": "expressionless.png",
-    "love": "love.png",
-    "sad": "sad.png",
-    "sleepy": "sleepy.png",
+    "curiosity": "curiosity.png",
+    "sleepiness": "sleepiness.png",
+    "amusement": "happiness.png",  # amusement는 happiness.png 사용
+    "happiness": "happiness.png",
+    "sadness": "sadness.png",
     "surprise": "surprise.png",
+    "greatsurprise": "surprise.png",  # greatsurprise도 surprise.png 사용
     "disappointment": "disappointment.png",
+    "love": "love.png",
+    "dizziness": "dizziness.png",
+    "greatdizziness": "dizziness.png",  # greatdizziness도 dizziness.png 사용
+    "expressionless": "expressionless.png",
 }
 
 emotions = {
@@ -81,14 +84,17 @@ def get_action_index_from_emotion(emotion: str):
     emotion = emotion.strip().lower()
     # 영문 매핑
     EN_EMOTION_TO_INDEX = {
-        "curious": 1,
-        "sleepy": 2,
-        "delight": 3,  # delight는 3,4 모두 매핑 가능하나 우선 3
-        "sad": 5,
+        "curiosity": 1,
+        "sleepiness": 2,
+        "amusement": 3,  # delight는 3,4 모두 매핑 가능하나 우선 3
+        "happiness": 4,  
+        "sadness": 5,
         "surprise": 6,  # surprise는 6,7 모두 매핑 가능하나 우선 6
+        "greatsurprise": 7,
         "disappointment": 8,
         "love": 9,
-        "dizzy": 10,
+        "dizziness": 10,
+        "greatdizziness": 11,
         "expressionless": None,  # 표정없음은 action_index 없음
     }
     if emotion in EN_EMOTION_TO_INDEX:
