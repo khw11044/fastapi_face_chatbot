@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 from cv_bridge import CvBridge
 from typing import Dict
+from collections import deque, Counter
 
 
 class ROS2PublisherService:
@@ -65,6 +66,10 @@ class ROS2PublisherService:
         self.battery_lock = threading.Lock()
         self.MIN_VOLTAGE = 12.8
         self.MAX_VOLTAGE = 16.8
+        
+        # 감정 action_index 히스토리 (최근 100개)
+        self.emotion_history = deque(maxlen=100)
+        self.emotion_lock = threading.Lock()
         
     def initialize(self):
         """ROS2 노드 및 Publisher들 초기화"""
@@ -149,6 +154,14 @@ class ROS2PublisherService:
                 self._battery_callback,
                 10
             )
+            
+            # Emotion action_index subscriber (BEST_EFFORT)
+            self.node.create_subscription(
+                UInt8,
+                '/edie8/emotion/action_index',
+                self._emotion_action_callback,
+                qos_profile
+            )
 
             # 별도 스레드에서 spin 실행
             self.spin_thread = threading.Thread(
@@ -168,6 +181,7 @@ class ROS2PublisherService:
             print("   - /edie8/sensor/front/laser (Front Laser)")
             print("   - /edie8/sensor/bottom/laser_values (Bottom Laser)")
             print("   - /edie8/battery/voltage (Battery)")
+            print("   - /edie8/emotion/action_index (Emotion Stats)")
             
         except Exception as e:
             print(f"❌ ROS2 initialization failed: {e}")
@@ -365,6 +379,67 @@ class ROS2PublisherService:
         """현재 배터리 전압 반환"""
         with self.battery_lock:
             return self.battery_voltage
+    
+    def _emotion_action_callback(self, msg: UInt8):
+        """감정 action_index 콜백"""
+        try:
+            action_index = msg.data
+            with self.emotion_lock:
+                self.emotion_history.append(action_index)
+        except Exception as e:
+            print(f"❌ Emotion action callback error: {e}")
+    
+    def get_emotion_percentages(self) -> Dict[str, float]:
+        """최근 100개 action_index 기준 8개 감정별 백분율 반환"""
+        with self.emotion_lock:
+            if len(self.emotion_history) == 0:
+                return {
+                    "curiosity": 0.0,     # 1
+                    "sleepiness": 0.0,    # 2
+                    "happiness": 0.0,     # 3, 4
+                    "sadness": 0.0,       # 5
+                    "surprise": 0.0,      # 6, 7
+                    "disappointment": 0.0, # 8
+                    "love": 0.0,          # 9
+                    "dizziness": 0.0,     # 10, 11
+                }
+            
+            # action_index → 감정 매핑
+            emotion_mapping = {
+                1: "curiosity",
+                2: "sleepiness",
+                3: "happiness",
+                4: "happiness",
+                5: "sadness",
+                6: "surprise",
+                7: "surprise",
+                8: "disappointment",
+                9: "love",
+                10: "dizziness",
+                11: "dizziness",
+            }
+            
+            # 감정별 카운트
+            emotion_counts = Counter()
+            for action_idx in self.emotion_history:
+                emotion = emotion_mapping.get(action_idx)
+                if emotion:
+                    emotion_counts[emotion] += 1
+            
+            # 백분율 계산
+            total = len(self.emotion_history)
+            emotion_percentages = {
+                "curiosity": (emotion_counts.get("curiosity", 0) / total) * 100,
+                "sleepiness": (emotion_counts.get("sleepiness", 0) / total) * 100,
+                "happiness": (emotion_counts.get("happiness", 0) / total) * 100,
+                "sadness": (emotion_counts.get("sadness", 0) / total) * 100,
+                "surprise": (emotion_counts.get("surprise", 0) / total) * 100,
+                "disappointment": (emotion_counts.get("disappointment", 0) / total) * 100,
+                "love": (emotion_counts.get("love", 0) / total) * 100,
+                "dizziness": (emotion_counts.get("dizziness", 0) / total) * 100,
+            }
+            
+            return emotion_percentages
 
     def get_latest_frame(self):
         """

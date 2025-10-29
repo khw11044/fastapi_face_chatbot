@@ -75,3 +75,32 @@ async def websocket_battery(websocket: WebSocket):
     except Exception as e:
         print(f"❌ Battery WebSocket error: {e}")
         await websocket.close(code=1000)
+
+
+@router.websocket("/ws/emotion-stats")
+async def websocket_emotion_stats(websocket: WebSocket):
+    """
+    웹소켓을 통해 실시간 감정 통계 전송 (새 데이터가 들어올 때마다)
+    """
+    await websocket.accept()
+    
+    try:
+        previous_data = None
+        
+        while True:
+            # 감정 백분율 가져오기 (ros2_publisher에서)
+            emotion_percentages = ros2_publisher.get_emotion_percentages()
+            
+            # 데이터가 변경되었을 때만 전송 (효율화)
+            if emotion_percentages != previous_data:
+                await websocket.send_json(emotion_percentages)
+                previous_data = emotion_percentages.copy()
+            
+            # 0.1초마다 체크 (새 action_index가 들어오면 즉시 반영)
+            await asyncio.sleep(0.1)
+            
+    except WebSocketDisconnect:
+        print("❌ Emotion stats WebSocket client disconnected")
+    except Exception as e:
+        print(f"❌ Emotion stats WebSocket error: {e}")
+        await websocket.close(code=1000)
