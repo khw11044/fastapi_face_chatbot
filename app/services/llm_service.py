@@ -41,17 +41,17 @@ EMOTION_IMAGE_MAP = {
 }
 
 emotions = {
-    1: "궁금함",                # curious.png
-    2: "졸림",                  # sleepy.png
-    3: "웃김(즐거움)",          # delight.png
-    4: "기쁨(뿌듯함)",          # delight.png
-    5: "슬픔",                  # sad.png
-    6: "놀람",                  # surprise.png
-    7: "매우놀람",              # surprise.png
-    8: "실망",                  # disappointment.png
-    9: "사랑",                  # love.png
-    10: "어지러움",             # dizzy.png
-    11: "아주 어지러움",        # dizzy.png
+    1: "궁금함",                # 궁금함
+    2: "졸림",                  # 졸림
+    3: "웃김(즐거움)",          # 기쁨
+    4: "기쁨(뿌듯함)",          # 기쁨
+    5: "슬픔",                  # 슬픔
+    6: "놀람",                  # 놀람
+    7: "매우놀람",              # 놀람
+    8: "실망",                  # 실망
+    9: "사랑",                  # 사랑
+    10: "어지러움",             # 어지러움
+    11: "아주 어지러움",        # 어지러움
     # "low-dattery": 12,
 }
 
