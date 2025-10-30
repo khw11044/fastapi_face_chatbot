@@ -9,96 +9,224 @@
     <link rel="stylesheet" href="/static/styles/main.css">
     <link rel="stylesheet" href="/static/styles/navbar.css">
     <style>
-        /* 터치&레이저 페이지 전용 스타일 */
-        .touch-laser-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 3fr 1fr;
-            height: 100vh;
-            width: 100%;
+        /* 전체 배경 */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* 메인 프레임 박스 (90% 크기) */
+        .main-frame-box {
+            width: 90vw;
+            height: 90vh;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 상단 박스 (10%) */
+        .top-main-box {
+            height: 10%;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: row;
             position: relative;
         }
-        
-        /* 중앙 수직선 */
-        .vertical-divider {
+
+        /* 상단 좌측 박스 (50%) */
+        .top-left-box {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        /* 상단 우측 박스 (50%) */
+        .top-right-box {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        /* WiFi 박스 */
+        .wifi-box {
+            width: 100%;
+            height: 100%;
+            background: rgba(240, 240, 245, 0.8);
+            border-radius: 12px;
+            border: 2px solid rgba(200, 200, 220, 0.6);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* IP Address 박스 */
+        .ip-address-box {
+            width: 100%;
+            height: 100%;
+            background: rgba(240, 240, 245, 0.8);
+            border-radius: 12px;
+            border: 2px solid rgba(200, 200, 220, 0.6);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 상단 박스 타이틀 */
+        .top-box-title {
+            font-size: 1em;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+        }
+
+        /* 중앙 박스 (60%) */
+        .center-main-box {
+            height: 70%;
+            display: flex;
+            flex-direction: row;
+            position: relative;
+        }
+
+        /* 중앙 수직 구분선 (top-main-box용) */
+        .top-divider {
             position: absolute;
             left: 50%;
             top: 0;
             width: 3px;
             height: 100%;
-            background-color: rgba(255, 255, 255, 0.3);
+            background-color: rgba(0, 0, 0, 0.3);
             transform: translateX(-50%);
             z-index: 10;
         }
-        
-        /* 하단 1/4 수평선 */
-        .horizontal-divider {
+
+        /* 중앙 수직 구분선 (center-main-box용) */
+        .center-divider {
             position: absolute;
-            left: 0;
-            top: 75%;
-            width: 100%;
-            height: 3px;
-            background-color: rgba(255, 255, 255, 0.3);
+            left: 50%;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            transform: translateX(-50%);
             z-index: 10;
         }
-        
-        /* 각 영역 */
-        .section {
+
+        /* 가로 구분선 (center-main-box와 bottom-main-box 사이) */
+        .horizontal-divider {
+            width: 100%;
+            height: 3px;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        /* 좌측 박스 (50%) */
+        .left-main-box {
+            flex: 1;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: row;
             padding: 20px;
+            gap: 15px;
+            position: relative;
         }
-        
-        /* 레이저 상단 (우상단) */
-        .laser-top {
-            flex-direction: column;
-            justify-content: flex-start;
+
+        /* 좌측 박스 내부 구분선 */
+        .left-divider {
+            position: absolute;
+            left: 75%;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            transform: translateX(-50%);
+            z-index: 10;
         }
-        
-        .section-title {
-            color: white;
-            font-size: 2em;
-            font-weight: 600;
-            text-align: center;
-            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* 터치센서 영역 (좌상단) */
-        .touch-top {
-            grid-column: 1;
-            grid-row: 1;
+
+        /* 우측 박스 (50%) */
+        .right-main-box {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            gap: 5px;
-            padding-top: 100px;
-            padding-bottom: 140px;
+            padding: 20px;
+            gap: 15px;
         }
-        
-        /* 검은색 원 */
+
+        /* 하단 박스 (20%) */
+        .bottom-main-box {
+            height: 20%;
+            background: rgba(255, 255, 255, 0.1);
+            border-top: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 에디 터치센서 시각화 박스 */
+        .edie-touch-sensor-vis-box {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            gap: 20px;
+            height: 100%;
+            background: rgba(240, 240, 245, 0.8);
+            border-radius: 12px;
+            border: 2px solid rgba(200, 200, 220, 0.6);
+        }
+
+        /* 모터 컨트롤 박스 */
+        .control-motor-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 15px;
+            height: 100%;
+            background: rgba(240, 240, 245, 0.8);
+            border-radius: 12px;
+            border: 2px solid rgba(200, 200, 220, 0.6);
+        }
+
+        /* 검은색 원 (정면 모습) */
         .circle {
-            width: 20vw;
-            max-width: 300px;
-            height: 20vw;
-            max-height: 300px;
+            width: 15vw;
+            max-width: 240px;
+            height: 15vw;
+            max-height: 240px;
             border-radius: 50%;
             background-color: black;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
+            flex-shrink: 0;
         }
-        
+
         /* 흰색 원 (70% 크기) */
         .white-circle {
             width: 70%;
             height: 70%;
             border-radius: 50%;
             background-color: white;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+            border: 3px solid white;
         }
-        
+
         /* 초록색 타원 (가로로 눞힌 타원) */
         .green-oval {
             position: absolute;
@@ -106,43 +234,44 @@
             height: 8.3%;
             border-radius: 50%;
             background-color: #00ff00;
+            transition: background-color 0.3s ease;
         }
-        
+
         /* 12시 방향 */
         .green-oval-12 {
             top: 3.3%;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         /* 2시 방향 */
         .green-oval-2 {
             top: 16.7%;
             right: 12.7%;
         }
-        
+
         /* 4시 방향 */
         .green-oval-4 {
             bottom: 16.7%;
             right: 13.3%;
         }
-        
+
         /* 8시 방향 */
         .green-oval-8 {
             bottom: 16.7%;
             left: 13.3%;
         }
-        
+
         /* 10시 방향 */
         .green-oval-10 {
             top: 16.7%;
             left: 12.7%;
         }
-        
-        /* 타원 */
+
+        /* 타원 (위에서 본 모습) */
         .ellipse {
-            width: 20vw;
-            max-width: 300px;
+            width: 15vw;
+            max-width: 240px;
             aspect-ratio: 3 / 4;
             border-radius: 50%;
             background-color: black;
@@ -151,9 +280,9 @@
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            /* transform: rotate(180deg); */
+            flex-shrink: 0;
         }
-        
+
         /* 타원 안의 작은 초록색 타원 */
         .ellipse-oval {
             position: absolute;
@@ -161,114 +290,151 @@
             height: 6.7%;
             border-radius: 50%;
             background-color: #00ff00;
+            transition: background-color 0.3s ease;
         }
-        
+
         /* 1층 (최하단) - 중앙 1개 */
         .ellipse-oval-1 {
             top: 43.75%;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         /* 2층 - 3개 */
         .ellipse-oval-2-left {
             top: 27.5%;
             left: 20%;
         }
-        
+
         .ellipse-oval-2-center {
             top: 27.5%;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         .ellipse-oval-2-right {
             top: 27.5%;
             right: 20%;
         }
-        
+
         /* 3층 - 3개 */
         .ellipse-oval-3-left {
             top: 11.25%;
             left: 26.7%;
         }
-        
+
         .ellipse-oval-3-center {
             top: 8.75%;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         .ellipse-oval-3-right {
             top: 11.25%;
             right: 26.7%;
         }
-        
+
+        /* 우측 박스들 공통 스타일 */
+        .touch-box, .laser-box, .imu-box {
+            flex: 1;
+            background: rgba(240, 240, 245, 0.8);
+            border-radius: 12px;
+            border: 2px solid rgba(200, 200, 220, 0.6);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .box-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
         /* 터치맵 테이블 스타일 */
         .touch-map-table {
-            width: 600px;
+            width: 100%;
+            max-width: 600px;
             border-collapse: collapse;
-            margin-bottom: 20px;
         }
-        
+
         .touch-map-table th, .touch-map-table td {
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            padding: 12px;
+            border: 2px solid rgba(150, 150, 170, 0.5);
+            padding: 10px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
         }
-        
+
         .touch-map-table th {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
+            background-color: rgba(100, 100, 150, 0.2);
+            color: #333;
+            font-weight: 600;
         }
-        
+
         .touch-map-table td {
-            background-color: rgba(0, 0, 0, 0.3);
-            color: white;
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #333;
         }
-        
+
         /* 레이저 테이블 스타일 */
         .laser-table {
-            width: 600px;
+            width: 100%;
+            max-width: 600px;
             border-collapse: collapse;
-            margin-top: 40px;
         }
-        
+
         .laser-table th, .laser-table td {
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            padding: 12px;
+            border: 2px solid rgba(150, 150, 170, 0.5);
+            padding: 10px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
         }
-        
+
         .laser-table th {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
+            background-color: rgba(100, 100, 150, 0.2);
+            color: #333;
+            font-weight: 600;
         }
-        
+
         .laser-table td {
-            background-color: rgba(0, 0, 0, 0.3);
-            color: white;
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #333;
         }
-        
-        /* 터치센서 하단 (좌하단) */
-        .touch-bottom {
-            grid-column: 1;
-            grid-row: 2;
-        }
-        
-        /* 레이저 하단 (우하단) */
-        .laser-bottom {
-            grid-column: 2;
-            grid-row: 2;
-        }
-        
+
+        /* 반응형 */
         @media (max-width: 768px) {
-            .section-title {
-                font-size: 1.5em;
+            .main-frame-box {
+                width: 95vw;
+                height: 95vh;
+            }
+
+            .center-main-box {
+                flex-direction: column;
+            }
+
+            .center-divider {
+                width: 100%;
+                height: 3px;
+                top: 50%;
+                left: 0;
+                transform: translateY(-50%);
+            }
+
+            .circle, .ellipse {
+                width: 30vw;
+                max-width: 200px;
+                height: 30vw;
+                max-height: 200px;
+            }
+
+            .box-title {
+                font-size: 1em;
             }
         }
     </style>
@@ -312,111 +478,158 @@
         </ul>
     </nav>
 
-    <!-- 메인 콘텐츠 -->
-    <div class="touch-laser-container">
-        <!-- 중앙 수직선 -->
-        <div class="vertical-divider"></div>
-        
-        <!-- 하단 1/4 수평선 -->
+    <!-- 메인 프레임 박스 -->
+    <div class="main-frame-box">
+        <!-- 상단 박스 (10%) -->
+        <div class="top-main-box">
+            <!-- 상단 구분선 -->
+            <div class="top-divider"></div>
+
+            <!-- 상단 좌측 박스 -->
+            <div class="top-left-box">
+                <div class="wifi-box">
+                    <div class="top-box-title">WiFi</div>
+                </div>
+            </div>
+
+            <!-- 상단 우측 박스 -->
+            <div class="top-right-box">
+                <div class="ip-address-box">
+                    <div class="top-box-title">IP Address</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 가로 구분선 (상단) -->
         <div class="horizontal-divider"></div>
-        
-        <!-- 터치센서 상단 (좌상단) -->
-        <div class="section touch-top">
-            <!-- 검은색 원 -->
-            <div class="circle">
-                <!-- 초록색 타원들 (5개 위치) -->
-                <div class="green-oval green-oval-12" id="green-oval-head"></div>
-                <div class="green-oval green-oval-2" id="green-oval-left-temple"></div>
-                <div class="green-oval green-oval-4" id="green-oval-left-cheek"></div>
-                <div class="green-oval green-oval-8" id="green-oval-right-cheek"></div>
-                <div class="green-oval green-oval-10" id="green-oval-right-temple"></div>
-                
-                <!-- 흰색 원 -->
-                <div class="white-circle"></div>
+
+        <!-- 중앙 박스 (60%) -->
+        <div class="center-main-box">
+            <!-- 중앙 구분선 -->
+            <div class="center-divider"></div>
+
+            <!-- 좌측 박스 -->
+            <div class="left-main-box">
+
+
+                <!-- 에디 터치센서 시각화 박스 -->
+                <div class="edie-touch-sensor-vis-box">
+                    <!-- 검은색 원 (정면 모습) -->
+                    <div class="circle">
+                        <!-- 초록색 타원들 (5개 위치) -->
+                        <div class="green-oval green-oval-12" id="green-oval-head"></div>
+                        <div class="green-oval green-oval-2" id="green-oval-left-temple"></div>
+                        <div class="green-oval green-oval-4" id="green-oval-left-cheek"></div>
+                        <div class="green-oval green-oval-8" id="green-oval-right-cheek"></div>
+                        <div class="green-oval green-oval-10" id="green-oval-right-temple"></div>
+                        
+                        <!-- 흰색 원 -->
+                        <div class="white-circle"></div>
+                    </div>
+
+                    <!-- 타원 (위에서 본 모습) -->
+                    <div class="ellipse">
+                        <!-- 1층 (최하단) -->
+                        <div class="ellipse-oval ellipse-oval-1" id="ellipse-oval-head"></div>
+                        
+                        <!-- 2층 -->
+                        <div class="ellipse-oval ellipse-oval-2-left" id="ellipse-oval-right-back"></div>
+                        <div class="ellipse-oval ellipse-oval-2-center" id="ellipse-oval-middle-back"></div>
+                        <div class="ellipse-oval ellipse-oval-2-right" id="ellipse-oval-left-back"></div>
+                        
+                        <!-- 3층 -->
+                        <div class="ellipse-oval ellipse-oval-3-left" id="ellipse-oval-right-hip"></div>
+                        <div class="ellipse-oval ellipse-oval-3-center" id="ellipse-oval-middle-hip"></div>
+                        <div class="ellipse-oval ellipse-oval-3-right" id="ellipse-oval-left-hip"></div>
+                    </div>
+                </div>
+
+                <!-- 모터 컨트롤 박스 -->
+                <div class="control-motor-box">
+                    <div class="box-title">Motor Control</div>
+                </div>
             </div>
-            
-            <!-- 타원 -->
-            <div class="ellipse">
-                <!-- 1층 (최하단) -->
-                <div class="ellipse-oval ellipse-oval-1" id="ellipse-oval-head"></div>
-                
-                <!-- 2층 -->
-                <div class="ellipse-oval ellipse-oval-2-left" id="ellipse-oval-right-back"></div>
-                <div class="ellipse-oval ellipse-oval-2-center" id="ellipse-oval-middle-back"></div>
-                <div class="ellipse-oval ellipse-oval-2-right" id="ellipse-oval-left-back"></div>
-                
-                <!-- 3층 -->
-                <div class="ellipse-oval ellipse-oval-3-left" id="ellipse-oval-right-hip"></div>
-                <div class="ellipse-oval ellipse-oval-3-center" id="ellipse-oval-middle-hip"></div>
-                <div class="ellipse-oval ellipse-oval-3-right" id="ellipse-oval-left-hip"></div>
+
+            <!-- 우측 박스 -->
+            <div class="right-main-box">
+                <!-- 터치 박스 -->
+                <div class="touch-box">
+                    <div class="box-title">Touch Sensors</div>
+                    <table class="touch-map-table">
+                        <thead>
+                            <tr>
+                                <th>Left Hip</th>
+                                <th>Middle Hip</th>
+                                <th>Right Hip</th>
+                                <th>Left Back</th>
+                                <th>Middle Back</th>
+                                <th>Right Back</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <th>Head</th>
+                                <th>Left Cheek</th>
+                                <th>Right Cheek</th>
+                                <th>Left Temple</th>
+                                <th>Right Temple</th>
+                                <th></th>
+                            </tr>
+                            <tr>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 레이저 박스 -->
+                <div class="laser-box">
+                    <div class="box-title">Laser Sensors</div>
+                    <table class="laser-table">
+                        <thead>
+                            <tr>
+                                <th>Front Left</th>
+                                <th>Front Right</th>
+                                <th>Bottom Left</th>
+                                <th>Bottom Right</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- IMU 박스 (비워둠) -->
+                <div class="imu-box">
+                    <div class="box-title">IMU Sensors</div>
+                </div>
             </div>
         </div>
-        
-        <!-- 레이저 상단 (우상단) -->
-        <div class="section laser-top">
-            <!-- 레이저 타원 -->
-            <div class="laser-ellipse">
-            </div>
-            
-            <!-- 터치맵 테이블 -->
-            <table class="touch-map-table">
-                <tr>
-                    <th>Left Hip</th>
-                    <th>Middle Hip</th>
-                    <th>Right Hip</th>
-                    <th>Left Back</th>
-                    <th>Middle Back</th>
-                    <th>Right Back</th>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <th>Head</th>
-                    <th>Left Cheek</th>
-                    <th>Right Cheek</th>
-                    <th>Left Temple</th>
-                    <th>Right Temple</th>
-                    <th></th>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </table>
-            
-            <!-- 레이저 테이블 -->
-            <table class="laser-table">
-                <tr>
-                    <th>front-left</th>
-                    <th>front-right</th>
-                    <th>bottom-left</th>
-                    <th>bottom-right</th>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </table>
-        </div>
-        
-        <!-- 터치센서 하단 (좌하단) -->
-        <div class="section touch-bottom">
-        </div>
-        
-        <!-- 레이저 하단 (우하단) -->
-        <div class="section laser-bottom">
+
+        <!-- 가로 구분선 -->
+        <div class="horizontal-divider"></div>
+
+        <!-- 하단 박스 (20%) -->
+        <div class="bottom-main-box">
         </div>
     </div>
 

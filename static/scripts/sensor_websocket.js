@@ -62,9 +62,9 @@ class SensorWebSocketClient {
         try {
             // 터치맵 테이블 업데이트
             const touchMapRows = document.querySelectorAll('.touch-map-table tbody tr');
-            if (touchMapRows.length >= 4) {
+            if (touchMapRows.length >= 3) {
                 // 1행 데이터 (hip과 back)
-                const row1Data = touchMapRows[1].querySelectorAll('td');
+                const row1Data = touchMapRows[0].querySelectorAll('td');
                 if (row1Data.length >= 6) {
                     row1Data[0].textContent = sensorData.left_hip;
                     row1Data[1].textContent = sensorData.middle_hip;
@@ -75,7 +75,7 @@ class SensorWebSocketClient {
                 }
                 
                 // 3행 데이터 (head와 cheek, temple)
-                const row3Data = touchMapRows[3].querySelectorAll('td');
+                const row3Data = touchMapRows[2].querySelectorAll('td');
                 if (row3Data.length >= 5) {
                     row3Data[0].textContent = sensorData.head;
                     row3Data[1].textContent = sensorData.left_cheek;
@@ -116,8 +116,8 @@ class SensorWebSocketClient {
             
             // 레이저 테이블 업데이트
             const laserRows = document.querySelectorAll('.laser-table tbody tr');
-            if (laserRows.length >= 2) {
-                const laserCells = laserRows[1].querySelectorAll('td');
+            if (laserRows.length >= 1) {
+                const laserCells = laserRows[0].querySelectorAll('td');
                 if (laserCells.length >= 4) {
                     laserCells[0].textContent = Math.round(sensorData.front_left);
                     laserCells[1].textContent = Math.round(sensorData.front_right);
@@ -150,8 +150,114 @@ class SensorWebSocketClient {
     }
 }
 
+/**
+ * 감정 얼굴 이미지 웹소켓 클라이언트
+ */
+class EmotionFaceWebSocketClient {
+    constructor() {
+        this.ws = null;
+        this.isConnected = false;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.reconnectDelay = 3000;
+        this.defaultImagePath = '/static/face_raw/expressionless.jpg';
+    }
+
+    connect() {
+        try {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/sensor/ws/emotion-face`;
+            
+            console.log(`🔌 Connecting to Emotion Face WebSocket: ${wsUrl}`);
+            
+            this.ws = new WebSocket(wsUrl);
+            
+            this.ws.onopen = () => this.onOpen();
+            this.ws.onmessage = (event) => this.onMessage(event);
+            this.ws.onerror = (event) => this.onError(event);
+            this.ws.onclose = () => this.onClose();
+            
+        } catch (error) {
+            console.error('❌ Emotion Face WebSocket connection error:', error);
+            this.reconnect();
+        }
+    }
+
+    onOpen() {
+        console.log('✅ Emotion Face WebSocket connected');
+        this.isConnected = true;
+        this.reconnectAttempts = 0;
+        
+        // 연결 시 기본 이미지 설정
+        this.updateFaceImage(this.defaultImagePath);
+    }
+
+    onMessage(event) {
+        try {
+            const data = JSON.parse(event.data);
+            console.log('😃 [Emotion Face Received]', data);
+            
+            if (data.image_path) {
+                this.updateFaceImage(data.image_path);
+            }
+        } catch (error) {
+            console.error('❌ Error parsing emotion face data:', error);
+        }
+    }
+
+    onError(event) {
+        console.error('❌ Emotion Face WebSocket error:', event);
+    }
+
+    onClose() {
+        console.log('⚠️ Emotion Face WebSocket disconnected');
+        this.isConnected = false;
+        this.reconnect();
+    }
+
+    updateFaceImage(imagePath) {
+        const whiteCircle = document.querySelector('.white-circle');
+        if (whiteCircle) {
+            // 이미지 로드 에러 처리
+            const img = new Image();
+            img.onload = () => {
+                whiteCircle.style.backgroundImage = `url('${imagePath}')`;
+                console.log(`✅ Face image updated: ${imagePath}`);
+            };
+            img.onerror = () => {
+                console.error(`❌ Failed to load image: ${imagePath}, using default`);
+                whiteCircle.style.backgroundImage = `url('${this.defaultImagePath}')`;
+            };
+            img.src = imagePath;
+        }
+    }
+
+    reconnect() {
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            this.reconnectAttempts++;
+            console.log(`🔄 Reconnecting Emotion Face WebSocket... (Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+            
+            setTimeout(() => {
+                this.connect();
+            }, this.reconnectDelay);
+        } else {
+            console.error('❌ Max reconnection attempts reached for Emotion Face WebSocket');
+        }
+    }
+
+    disconnect() {
+        if (this.ws) {
+            this.ws.close();
+        }
+    }
+}
+
 // 페이지 로드 시 웹소켓 클라이언트 초기화
 document.addEventListener('DOMContentLoaded', () => {
     const sensorClient = new SensorWebSocketClient();
     sensorClient.connect();
+    
+    // 감정 얼굴 웹소켓 클라이언트 초기화
+    const emotionFaceClient = new EmotionFaceWebSocketClient();
+    emotionFaceClient.connect();
 });

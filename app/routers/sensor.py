@@ -5,6 +5,33 @@ from ..services.ros2_service import ros2_publisher
 
 router = APIRouter()
 
+# action_index → 이미지 파일명 매핑
+ACTION_INDEX_TO_IMAGE = {
+    0: "expressionless.jpg",  # 기본값
+    1: "curiosity.jpg",
+    2: "sleepiness.jpg",
+    3: "happiness.jpg",
+    4: "happiness.jpg",
+    5: "sadness.jpg",
+    6: "surprise.jpg",
+    7: "surprise.jpg",
+    8: "disappointment.jpg",
+    9: "love.jpg",
+    10: "dizziness.jpg",
+    11: "dizziness.jpg",
+}
+
+def get_emotion_image_path(action_index: int) -> str:
+    """
+    action_index → 이미지 경로 변환
+    Args:
+        action_index (int): 0~11
+    Returns:
+        str: 이미지 경로 (예: /static/face_raw/happiness.jpg)
+    """
+    filename = ACTION_INDEX_TO_IMAGE.get(action_index, "expressionless.jpg")
+    return f"/static/face_raw/{filename}"
+
 
 @router.websocket("/ws/laser-sensors")
 async def websocket_laser_sensors(websocket: WebSocket):
@@ -103,6 +130,43 @@ async def websocket_emotion_stats(websocket: WebSocket):
         print("❌ Emotion stats WebSocket client disconnected")
     except Exception as e:
         print(f"❌ Emotion stats WebSocket error: {e}")
+        await websocket.close(code=1000)
+
+
+@router.websocket("/ws/emotion-face")
+async def websocket_emotion_face(websocket: WebSocket):
+    """
+    웹소켓을 통해 실시간 감정 얼굴 이미지 경로 전송
+    action_index가 변경될 때마다 즉시 전송
+    """
+    await websocket.accept()
+    
+    try:
+        previous_action_index = None
+        
+        while True:
+            # ros2_publisher에서 최신 action_index 가져오기
+            current_action_index = ros2_publisher.get_latest_action_index()
+            
+            # action_index가 변경되었을 때만 전송
+            if current_action_index != previous_action_index:
+                image_path = get_emotion_image_path(current_action_index)
+                
+                await websocket.send_json({
+                    "action_index": current_action_index,
+                    "image_path": image_path
+                })
+                
+                previous_action_index = current_action_index
+                print(f"😃 Sent emotion image: {image_path} (action_index: {current_action_index})")
+            
+            # 0.1초마다 체크
+            await asyncio.sleep(0.1)
+            
+    except WebSocketDisconnect:
+        print("❌ Emotion face WebSocket client disconnected")
+    except Exception as e:
+        print(f"❌ Emotion face WebSocket error: {e}")
         await websocket.close(code=1000)
 
 

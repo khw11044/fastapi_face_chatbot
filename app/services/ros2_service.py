@@ -71,6 +71,10 @@ class ROS2PublisherService:
         self.emotion_history = deque(maxlen=100)
         self.emotion_lock = threading.Lock()
         
+        # 최신 감정 action_index
+        self.latest_action_index = 0
+        self.latest_emotion_lock = threading.Lock()
+        
     def initialize(self):
         """ROS2 노드 및 Publisher들 초기화"""
         try:
@@ -417,6 +421,9 @@ class ROS2PublisherService:
             action_index = msg.data
             with self.emotion_lock:
                 self.emotion_history.append(action_index)
+            with self.latest_emotion_lock:
+                self.latest_action_index = action_index
+            print(f"😃 Emotion action_index updated: {action_index}")
         except Exception as e:
             print(f"❌ Emotion action callback error: {e}")
     
@@ -425,6 +432,11 @@ class ROS2PublisherService:
         with self.emotion_lock:
             self.emotion_history.clear()
         print("🧹 Emotion history cleared")
+    
+    def get_latest_action_index(self) -> int:
+        """최신 action_index 반환"""
+        with self.latest_emotion_lock:
+            return self.latest_action_index
     
     def get_emotion_percentages(self) -> Dict[str, float]:
         """최근 100개 action_index 기준 8개 감정별 백분율 반환"""
