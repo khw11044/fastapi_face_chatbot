@@ -108,6 +108,80 @@ class SensorWebSocketClient {
                 }
             };
             
+            // 레이저 선 길이 및 위치 업데이트 함수 (픽셀 단위, 원/타원 기준)
+            const updateLaserLine = (elementId, laserValue, maxValue, type) => {
+                const element = document.getElementById(elementId);
+                const parent = document.querySelector('.edie-touch-sensor-vis-box');
+                const ellipse = document.querySelector('.ellipse');
+                const circle = document.querySelector('.circle');
+                if (!element || !parent || !ellipse || !circle) return;
+
+                const parentRect = parent.getBoundingClientRect();
+                const ellipseRect = ellipse.getBoundingClientRect();
+                const circleRect = circle.getBoundingClientRect();
+
+                const maxLength = 120; // px
+                const normalizedValue = Math.min(Math.max(laserValue / maxValue, 0), 1);
+                const lineHeight = normalizedValue * maxLength;
+
+                // Front 레이저(타원 밑변 1/5, 2/5 지점, clip-path 보정)
+                if (type === 'front-right') {
+                    // 1/5 지점, y좌표는 타원 밑변 (clip-path: height * 0.5)
+                    const x = ellipseRect.left - parentRect.left + ellipseRect.width * 0.2;
+                    const y = ellipseRect.top - parentRect.top + ellipseRect.height * 0.5;
+                    element.style.left = `${x}px`;
+                    element.style.top = `${y}px`;
+                    element.style.height = `${lineHeight}px`;
+                } else if (type === 'front-left') {
+                    // 2/5 지점, y좌표는 타원 밑변 (clip-path: height * 0.5)
+                    const x = ellipseRect.left - parentRect.left + ellipseRect.width * 0.8;
+                    const y = ellipseRect.top - parentRect.top + ellipseRect.height * 0.5;
+                    element.style.left = `${x}px`;
+                    element.style.top = `${y}px`;
+                    element.style.height = `${lineHeight}px`;
+                }
+                // Bottom 레이저(원 아래쪽 센서 위치)
+                else if (type === 'bottom-right') {
+                    // green-oval-8 위치 (좌측)
+                    const oval = document.getElementById('green-oval-right-cheek');
+                    let x, y;
+                    if (oval) {
+                        const ovalRect = oval.getBoundingClientRect();
+                        x = ovalRect.left - parentRect.left + ovalRect.width / 2;
+                        y = ovalRect.top - parentRect.top + ovalRect.height;
+                    } else {
+                        // fallback: 원의 좌측 하단 1/4
+                        x = circleRect.left - parentRect.left + circleRect.width * 0.25;
+                        y = circleRect.top - parentRect.top + circleRect.height * 0.85;
+                    }
+                    element.style.left = `${x}px`;
+                    element.style.top = `${y}px`;
+                    element.style.height = `${lineHeight}px`;
+                } else if (type === 'bottom-left') {
+                    // green-oval-4 위치 (우측)
+                    const oval = document.getElementById('green-oval-left-cheek');
+                    let x, y;
+                    if (oval) {
+                        const ovalRect = oval.getBoundingClientRect();
+                        x = ovalRect.left - parentRect.left + ovalRect.width / 2;
+                        y = ovalRect.top - parentRect.top + ovalRect.height;
+                    } else {
+                        // fallback: 원의 우측 하단 3/4
+                        x = circleRect.left - parentRect.left + circleRect.width * 0.75;
+                        y = circleRect.top - parentRect.top + circleRect.height * 0.85;
+                    }
+                    element.style.left = `${x}px`;
+                    element.style.top = `${y}px`;
+                    element.style.height = `${lineHeight}px`;
+                }
+            };
+
+            // 레이저 선 업데이트 (정확한 위치)
+            updateLaserLine('laser-front-right', sensorData.front_right, 2000, 'front-right');
+            updateLaserLine('laser-front-left', sensorData.front_left, 2000, 'front-left');
+            updateLaserLine('laser-bottom-right', sensorData.bottom_right, 256, 'bottom-right');
+            updateLaserLine('laser-bottom-left', sensorData.bottom_left, 256, 'bottom-left');
+            
             // 모든 센서에 대한 색상 업데이트
             // Head 센서 (2개 타원)
             updateOvalColor('green-oval-head', sensorData.head);

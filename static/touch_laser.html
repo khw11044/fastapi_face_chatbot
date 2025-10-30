@@ -212,6 +212,7 @@
             align-items: center;
             position: relative;
             flex-shrink: 0;
+            overflow: visible;
         }
 
         /* 흰색 원 (70% 크기) */
@@ -281,6 +282,7 @@
             justify-content: center;
             align-items: flex-end;
             flex-shrink: 0;
+            overflow: visible;
         }
 
         /* 타원 안의 작은 초록색 타원 */
@@ -291,6 +293,42 @@
             border-radius: 50%;
             background-color: #00ff00;
             transition: background-color 0.2s ease;
+        }
+
+        /* 레이저 센서 시각화 선 (공통) */
+        .laser-line {
+            position: absolute;
+            width: 3px;
+            background-color: #87CEEB;
+            z-index: 1000;
+            transition: height 0.2s ease;
+            pointer-events: none;
+        }
+
+        /* Front 레이저 선 (타원 기준, 부모 기준으로 재정의) */
+        .laser-front-right {
+            left: 20%;
+            top: 50%;
+            height: 0;
+        }
+
+        .laser-front-left {
+            left: 80%;
+            top: 50%;
+            height: 0;
+        }
+
+        /* Bottom 레이저 선 (원 기준, 부모 기준으로 재정의) */
+        .laser-bottom-right {
+            top: 77.5%;
+            height: 0;
+            transform-origin: top;
+        }
+
+        .laser-bottom-left {
+            top: 77.5%;
+            height: 0;
+            transform-origin: top;
         }
 
         /* 1층 (최하단) - 중앙 1개 */
@@ -513,7 +551,7 @@
 
 
                 <!-- 에디 터치센서 시각화 박스 -->
-                <div class="edie-touch-sensor-vis-box">
+                <div class="edie-touch-sensor-vis-box" style="position: relative;">
                     <!-- 검은색 원 (정면 모습) -->
                     <div class="circle">
                         <!-- 초록색 타원들 (5개 위치) -->
@@ -522,7 +560,6 @@
                         <div class="green-oval green-oval-4" id="green-oval-left-cheek"></div>
                         <div class="green-oval green-oval-8" id="green-oval-right-cheek"></div>
                         <div class="green-oval green-oval-10" id="green-oval-right-temple"></div>
-                        
                         <!-- 흰색 원 -->
                         <div class="white-circle"></div>
                     </div>
@@ -531,17 +568,21 @@
                     <div class="ellipse">
                         <!-- 1층 (최하단) -->
                         <div class="ellipse-oval ellipse-oval-1" id="ellipse-oval-head"></div>
-                        
                         <!-- 2층 -->
                         <div class="ellipse-oval ellipse-oval-2-left" id="ellipse-oval-right-back"></div>
                         <div class="ellipse-oval ellipse-oval-2-center" id="ellipse-oval-middle-back"></div>
                         <div class="ellipse-oval ellipse-oval-2-right" id="ellipse-oval-left-back"></div>
-                        
                         <!-- 3층 -->
                         <div class="ellipse-oval ellipse-oval-3-left" id="ellipse-oval-right-hip"></div>
                         <div class="ellipse-oval ellipse-oval-3-center" id="ellipse-oval-middle-hip"></div>
                         <div class="ellipse-oval ellipse-oval-3-right" id="ellipse-oval-left-hip"></div>
                     </div>
+                    
+                    <!-- 레이저 선을 타원/원 바깥으로 이동 -->
+                    <div class="laser-line laser-front-right" id="laser-front-right"></div>
+                    <div class="laser-line laser-front-left" id="laser-front-left"></div>
+                    <div class="laser-line laser-bottom-right" id="laser-bottom-right"></div>
+                    <div class="laser-line laser-bottom-left" id="laser-bottom-left"></div>
                 </div>
 
                 <!-- 모터 컨트롤 박스 -->
