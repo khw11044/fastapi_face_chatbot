@@ -111,21 +111,22 @@ def get_action_index_from_emotion(emotion: str):
 class LLMService:
     def __init__(self):
         # OpenAI ChatGPT 모델 초기화
-        self.llm = ChatOpenAI(
-            model_name="gpt-4.1-mini",
-            temperature=0.1,
-            openai_api_key=os.getenv("OPENAI_API_KEY")
-        )
+        # self.llm = ChatOpenAI(
+        #     model_name="gpt-4.1-mini",
+        #     temperature=0.1,
+        #     openai_api_key=os.getenv("OPENAI_API_KEY")
+        # )
         
         # edie_qwen2.5_0.5b_q4_k_m:latest 
         # edie_qwen2.5_1.5b_q4_k_m:latest 
         # edie_qwen2.5_1.5b_q4_0:latest 
+        # 
         
-        # model_name = 'edie_qwen2.5_1.5b_q4_k_m:latest '
-        # self.llm = ChatOllama(
-        #     model=model_name,
-        #     temperature=0.1
-        # )
+        model_name = 'edie8_f16:latest'
+        self.llm = ChatOllama(
+            model=model_name,
+            temperature=0.1
+        )
         
         # chats 디렉토리 생성
         self.chats_dir = "./chats"
@@ -160,7 +161,7 @@ class LLMService:
         # 현재 세션 ID
         self.current_session_id = 'default'
         
-        print(f"✅ LLM Agent initialized with {len(self.tools)} tools")
+        # print(f"✅ LLM Agent initialized with {len(self.tools)} tools")
         # for tool in self.tools:
         #     print(f"  - {tool.name}: {tool.description}")
     
