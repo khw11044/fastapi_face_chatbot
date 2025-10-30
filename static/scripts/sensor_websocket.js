@@ -85,11 +85,26 @@ class SensorWebSocketClient {
                 }
             }
             
+            // 센서 값(0~2000)을 색상으로 변환 (초록 → 빨강 그라데이션)
+            const getSensorColor = (value) => {
+                // 0~2000 범위를 0~1로 정규화
+                const normalized = Math.min(Math.max(value / 2000, 0), 1);
+                
+                // 시작: rgb(240, 255, 240) - 옅은 초록
+                // 끝: rgb(255, 0, 0) - 빨강
+                // 선형 보간
+                const r = Math.round(240 + (15 * normalized)); // 240 → 255
+                const g = Math.round(255 * (1 - normalized));   // 255 → 0
+                const b = Math.round(240 * (1 - normalized));   // 240 → 0
+                
+                return `rgb(${r}, ${g}, ${b})`;
+            };
+            
             // 센서 값에 따른 색상 변경 함수
             const updateOvalColor = (elementId, sensorValue) => {
                 const element = document.getElementById(elementId);
                 if (element) {
-                    element.style.backgroundColor = sensorValue >= 1 ? '#ff0000' : '#00ff00';
+                    element.style.backgroundColor = getSensorColor(sensorValue);
                 }
             };
             
