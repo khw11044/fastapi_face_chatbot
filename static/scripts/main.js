@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 감정 통계 WebSocket 연결
     initEmotionStatsWebSocket();
     
+    // 데시벨 WebSocket 연결
+    initDecibelWebSocket();
+    
     // 녹음 토글 버튼 초기화
     initRecordToggle();
 });
@@ -218,6 +221,60 @@ function updateEmotionVisualization(percentages) {
     });
     
     console.log(`😊 Emotion stats updated (max: ${maxEmotion} ${maxPercentage.toFixed(1)}%):`, percentages);
+}
+
+// 데시벨 WebSocket 관리
+let decibelWebSocket = null;
+
+function initDecibelWebSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/sensor/ws/decibel`;
+    
+    decibelWebSocket = new WebSocket(wsUrl);
+    
+    decibelWebSocket.onopen = () => {
+        console.log('✅ Decibel WebSocket connected');
+    };
+    
+    decibelWebSocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        updateDecibelUI(data.decibel);
+    };
+    
+    decibelWebSocket.onerror = (error) => {
+        console.error('❌ Decibel WebSocket error:', error);
+    };
+    
+    decibelWebSocket.onclose = () => {
+        console.log('⚠️ Decibel WebSocket disconnected. Reconnecting in 5 seconds...');
+        setTimeout(initDecibelWebSocket, 5000);
+    };
+}
+
+function updateDecibelUI(decibel) {
+    const decibelBar = document.getElementById('decibel-bar');
+    const decibelText = document.getElementById('decibel-text');
+    
+    if (decibelBar && decibelText) {
+        // 0~120 dB 범위를 0~100%로 변환
+        const percentage = Math.min((decibel / 120) * 100, 100);
+        decibelBar.style.width = `${percentage}%`;
+        decibelText.textContent = `${decibel.toFixed(1)} dB`;
+        
+        // 데시벨에 따라 색상 변경
+        if (decibel < 60) {
+            // 초록 (조용)
+            decibelBar.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
+        } else if (decibel < 90) {
+            // 노랑 (보통)
+            decibelBar.style.background = 'linear-gradient(90deg, #FFC107, #FFD54F)';
+        } else {
+            // 빨강 (시끄러움)
+            decibelBar.style.background = 'linear-gradient(90deg, #f44336, #e57373)';
+        }
+        
+        console.log(`🔊 Decibel: ${decibel.toFixed(1)} dB`);
+    }
 }
 
 // 녹음 토글 버튼 관리

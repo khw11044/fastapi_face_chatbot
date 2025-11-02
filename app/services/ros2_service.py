@@ -64,8 +64,12 @@ class ROS2PublisherService:
         self.battery_voltage: float = 0.0
         self.battery_percentage: float = 0.0
         self.battery_lock = threading.Lock()
-        self.MIN_VOLTAGE = 12.8
+        self.MIN_VOLTAGE = 10.8
         self.MAX_VOLTAGE = 16.8
+        
+        # 데시벨 값 관련
+        self.decibel_value: float = 0.0
+        self.decibel_lock = threading.Lock()
         
         # 감정 action_index 히스토리 (최근 100개)
         self.emotion_history = deque(maxlen=100)
@@ -173,6 +177,14 @@ class ROS2PublisherService:
                 self._emotion_action_callback,
                 qos_profile
             )
+            
+            # Decibel subscriber
+            self.node.create_subscription(
+                Float32,
+                '/edie8/sound/decibel',
+                self._decibel_callback,
+                10
+            )
 
             # 별도 스레드에서 spin 실행
             self.spin_thread = threading.Thread(
@@ -194,6 +206,7 @@ class ROS2PublisherService:
             print("   - /edie8/battery/voltage (Battery)")
             print("   - /edie8/emotion/action_index (Emotion Stats)")
             print("   - /edie8/sound/record_start (Record Toggle)")
+            print("   - /edie8/sound/decibel (Decibel)")
             
         except Exception as e:
             print(f"❌ ROS2 initialization failed: {e}")
@@ -414,6 +427,20 @@ class ROS2PublisherService:
         """현재 배터리 전압 반환"""
         with self.battery_lock:
             return self.battery_voltage
+    
+    def _decibel_callback(self, msg: Float32):
+        """데시벨 콜백"""
+        try:
+            decibel = msg.data
+            with self.decibel_lock:
+                self.decibel_value = decibel
+        except Exception as e:
+            print(f"❌ Decibel callback error: {e}")
+    
+    def get_decibel(self) -> float:
+        """현재 데시벨 값 반환"""
+        with self.decibel_lock:
+            return self.decibel_value
     
     def _emotion_action_callback(self, msg: UInt8):
         """감정 action_index 콜백"""

@@ -13,7 +13,7 @@ class BatteryService:
         self._lock = threading.Lock()
         
         # 전압 범위
-        self.MIN_VOLTAGE = 12.8
+        self.MIN_VOLTAGE = 10.0
         self.MAX_VOLTAGE = 16.8
         
     def voltage_to_percentage(self, voltage: float) -> float:

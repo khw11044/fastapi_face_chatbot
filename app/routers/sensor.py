@@ -170,6 +170,33 @@ async def websocket_emotion_face(websocket: WebSocket):
         await websocket.close(code=1000)
 
 
+@router.websocket("/ws/decibel")
+async def websocket_decibel(websocket: WebSocket):
+    """
+    웹소켓을 통해 실시간 데시벨 값 전송
+    """
+    await websocket.accept()
+    
+    try:
+        while True:
+            # 데시벨 값 가져오기 (ros2_publisher에서)
+            decibel = ros2_publisher.get_decibel()
+            
+            # 웹소켓으로 전송
+            await websocket.send_json({
+                "decibel": round(decibel, 1)
+            })
+            
+            # 0.1초 주기로 전송 (실시간 시각화)
+            await asyncio.sleep(0.1)
+            
+    except WebSocketDisconnect:
+        print("❌ Decibel WebSocket client disconnected")
+    except Exception as e:
+        print(f"❌ Decibel WebSocket error: {e}")
+        await websocket.close(code=1000)
+
+
 @router.post("/record-toggle")
 async def record_toggle(request: dict):
     """녹음 시작/중지 토글"""

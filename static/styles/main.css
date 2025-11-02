@@ -190,6 +190,33 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 15px;
+}
+
+/* 데시벨 바 컨테이너 */
+.decibel-bar-container {
+    flex: 1;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.decibel-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    border-radius: 8px;
+    transition: width 0.1s ease-out, background 0.3s ease;
+}
+
+.decibel-text {
+    min-width: 70px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
 }
 
 /* 배터리 프로그레스바 */

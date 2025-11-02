@@ -103,7 +103,13 @@
                     <div class="battery-fill" id="battery-fill"></div>
                     <div class="battery-text" id="battery-text">--%</div>
                 </div>
-                <div class="mic-box">마이크 데시벨 시각화 <button id="record-toggle-btn" class="record-btn">녹음</button></div>
+                <div class="mic-box">
+                    <div class="decibel-bar-container">
+                        <div class="decibel-bar" id="decibel-bar"></div>
+                    </div>
+                    <div class="decibel-text" id="decibel-text">0.0 dB</div>
+                    <button id="record-toggle-btn" class="record-btn">녹음</button>
+                </div>
             </div>
             <div class="chat-container">
                 <!-- 챗봇 헤더 -->
