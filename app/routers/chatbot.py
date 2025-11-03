@@ -61,6 +61,17 @@ async def clear_chat(request: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/user/emotion/clear")
+async def clear_user_emotion(request: dict):
+    """
+    사용자 감정 히스토리 초기화 (user_id 불필요)
+    """
+    try:
+        ros2_publisher.clear_user_emotion_history()
+        return {"message": "Emotion history cleared successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/archive")
 async def archive_database():
     """DB 전체를 아카이빙하고 새로 시작합니다."""

@@ -221,3 +221,53 @@ async def record_toggle(request: dict):
             "success": False,
             "message": str(e)
         }
+
+@router.websocket("/ws/user-emotion")
+async def websocket_user_emotion(websocket: WebSocket):
+    """
+    사용자 감정(표정) 실시간/누적 WebSocket
+    단순히 ROS2 토픽에서 받은 감정을 실시간으로 표시
+    """
+    await websocket.accept()
+    print("✅ User emotion WebSocket client connected")
+    
+    try:
+        prev_emotion = None
+        prev_histogram = None
+
+        while True:
+            # 최신 감정
+            latest_emotion = ros2_publisher.get_latest_user_emotion()
+            # 100개 히스토리
+            history = ros2_publisher.get_user_emotion_history()
+            
+            # 디버그: 매 루프마다 현재 상태 출력
+            # print(f"[WS DEBUG] latest_emotion={latest_emotion}, history_len={len(history)}")
+            
+            # 감정별 비율 계산
+            emotions = ["Anger", "Happiness", "Sadness", "Surprise", "Neutral"]
+            histogram = {e: 0 for e in emotions}
+            total = len(history)
+            for e in history:
+                if e in histogram:
+                    histogram[e] += 1
+            if total > 0:
+                for e in emotions:
+                    histogram[e] = round(histogram[e] / total * 100, 1)
+            
+            # 변경 시에만 전송
+            if latest_emotion != prev_emotion or histogram != prev_histogram:
+                print(f"[WS] Sending to client: latest={latest_emotion}, histogram={histogram}")
+                await websocket.send_json({
+                    "latest_emotion": latest_emotion,
+                    "histogram": histogram
+                })
+                prev_emotion = latest_emotion
+                prev_histogram = histogram.copy()
+            
+            await asyncio.sleep(0.1)
+    except WebSocketDisconnect:
+        print("❌ User emotion WebSocket client disconnected")
+    except Exception as e:
+        print(f"❌ User emotion WebSocket error: {e}")
+        await websocket.close(code=1000)

@@ -68,8 +68,39 @@
             </div>
                 <div class="emotion-container">
                     <div class="emotion-left">
-                        <div class="user-emotion-box">사용자 감정<br><span class="emotion-label"></span></div>
-                        <!-- (추후 사용자 감정 그래프/팔각형 등 추가 가능) -->
+                        <div class="user-emotion-box">
+                            사용자 감정
+                        </div>
+                        <div class="user-emotion-container">
+                            <div id="user-emotion-bars" class="user-emotion-bars">
+                                <!-- 감정별 가로 막대 그래프 -->
+                                <div class="user-emotion-bar-row" data-emotion="Anger">
+                                    <span class="bar-label">Anger</span>
+                                    <div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div>
+                                    <span class="bar-value">0%</span>
+                                </div>
+                                <div class="user-emotion-bar-row" data-emotion="Happiness">
+                                    <span class="bar-label">Happiness</span>
+                                    <div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div>
+                                    <span class="bar-value">0%</span>
+                                </div>
+                                <div class="user-emotion-bar-row" data-emotion="Sadness">
+                                    <span class="bar-label">Sadness</span>
+                                    <div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div>
+                                    <span class="bar-value">0%</span>
+                                </div>
+                                <div class="user-emotion-bar-row" data-emotion="Surprise">
+                                    <span class="bar-label">Surprise</span>
+                                    <div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div>
+                                    <span class="bar-value">0%</span>
+                                </div>
+                                <div class="user-emotion-bar-row" data-emotion="Neutral">
+                                    <span class="bar-label">Neutral</span>
+                                    <div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div>
+                                    <span class="bar-value">0%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="emotion-divider"></div>
                     <div class="emotion-right">

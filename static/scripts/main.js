@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ROI 바운딩 박스용 캔버스 및 WebSocket 초기화
     initRoiOverlay();
 
+    // 사용자 감정 시각화 WebSocket 및 UI 초기화
+    initUserEmotionVisualization();
+
     // 배터리 WebSocket 연결
     initBatteryWebSocket();
     
@@ -154,6 +157,87 @@ function initRoiOverlay() {
     }
 }
 
+/** 사용자 감정 시각화 WebSocket 및 UI */
+function initUserEmotionVisualization() {
+    let userEmotionWS = null;
+
+    // WebSocket 연결 (user_id 없음)
+    function connectUserEmotionWS() {
+        if (userEmotionWS) {
+            userEmotionWS.close();
+            userEmotionWS = null;
+        }
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/sensor/ws/user-emotion`;
+        userEmotionWS = new WebSocket(wsUrl);
+
+        userEmotionWS.onopen = () => {
+            console.log('✅ User emotion WebSocket connected');
+        };
+        userEmotionWS.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('[user-emotion WS] 수신:', data);
+            if (data.error) return;
+            updateUserEmotionUI(data.latest_emotion, data.histogram);
+        };
+        userEmotionWS.onerror = (e) => {
+            console.error('❌ User emotion WebSocket error:', e);
+        };
+        userEmotionWS.onclose = () => {
+            console.log('⚠️ User emotion WebSocket disconnected. Reconnecting in 5 seconds...');
+            setTimeout(connectUserEmotionWS, 5000);
+        };
+    }
+
+    // 네온 효과 및 막대 그래프 갱신
+    function updateUserEmotionUI(latest, histogram) {
+        // 네온 효과: bar-label에만 적용
+        document.querySelectorAll('.user-emotion-bar-row').forEach(row => {
+            const label = row.querySelector('.bar-label');
+            if (row.dataset.emotion === latest) {
+                label.classList.add('active-neon');
+            } else {
+                label.classList.remove('active-neon');
+            }
+        });
+        // 막대 그래프
+        if (histogram) {
+            Object.entries(histogram).forEach(([emotion, percent]) => {
+                const row = document.querySelector(`.user-emotion-bar-row[data-emotion="${emotion}"]`);
+                if (row) {
+                    const fill = row.querySelector('.bar-fill');
+                    const value = row.querySelector('.bar-value');
+                    fill.style.width = percent + '%';
+                    value.textContent = percent + '%';
+                }
+            });
+        }
+    }
+
+    // 페이지 로드 시 즉시 연결
+    connectUserEmotionWS();
+
+    // 대화 초기화 버튼 이벤트 (감정 히스토리 초기화)
+    const clearBtn = document.getElementById('clear-btn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', async () => {
+            try {
+                await fetch('/chatbot/user/emotion/clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                // UI도 초기화
+                updateUserEmotionUI(null, {
+                    Anger: 0, Happiness: 0, Sadness: 0, Surprise: 0, Neutral: 0
+                });
+            } catch (e) {
+                console.error('❌ 사용자 감정 초기화 실패:', e);
+            }
+        });
+    }
+}
+
 // 배터리 WebSocket 관리
 let batteryWebSocket = null;
 
@@ -202,6 +286,55 @@ function updateBatteryUI(percentage, voltage) {
         console.log(`🔋 Battery: ${percentage.toFixed(1)}% (${voltage.toFixed(2)}V)`);
     }
 }
+
+/* 사용자 감정 네온 효과용 CSS 동적 삽입 */
+(function injectUserEmotionNeonCSS() {
+    const style = document.createElement('style');
+    style.textContent = `
+    .user-emotion-bar-row {
+        display: flex;
+        align-items: center;
+        margin: 2px 0;
+    }
+    .user-emotion-bar-row .bar-label {
+        width: 70px;
+        font-size: 13px;
+        margin-right: 6px;
+        transition: all 0.3s;
+    }
+    .user-emotion-bar-row .bar-label.active-neon {
+        color: #fff;
+        font-weight: bold;
+        text-shadow:
+            0 0 8px #00e6ff,
+            0 0 16px #00e6ff,
+            0 0 24px #00e6ff,
+            0 0 32px #00e6ff;
+    }
+    .user-emotion-bar-row .bar-bg {
+        flex: 1;
+        height: 16px;
+        background: #222;
+        border-radius: 8px;
+        margin-right: 6px;
+        overflow: hidden;
+        position: relative;
+    }
+    .user-emotion-bar-row .bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00e6ff, #00ffb3);
+        border-radius: 8px;
+        transition: width 0.3s;
+    }
+    .user-emotion-bar-row .bar-value {
+        width: 38px;
+        text-align: right;
+        font-size: 12px;
+        color: #00e6ff;
+    }
+    `;
+    document.head.appendChild(style);
+})();
 
 // 감정 통계 WebSocket 관리
 let emotionStatsWebSocket = null;
@@ -379,7 +512,7 @@ function updateDecibelUI(decibel) {
             decibelBar.style.background = 'linear-gradient(90deg, #f44336, #e57373)';
         }
         
-        console.log(`🔊 Decibel: ${decibel.toFixed(1)} dB`);
+        // console.log(`🔊 Decibel: ${decibel.toFixed(1)} dB`);
     }
 }
 

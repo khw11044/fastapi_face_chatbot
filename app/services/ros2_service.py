@@ -7,7 +7,7 @@ import threading
 import cv2
 import numpy as np
 from cv_bridge import CvBridge
-from typing import Dict
+from typing import Dict, Deque
 from collections import deque, Counter
 
 
@@ -82,6 +82,12 @@ class ROS2PublisherService:
         # ROI(Closest Human) 관련
         self.latest_roi = None
         self.roi_lock = threading.Lock()
+
+        # 사용자 감정 히스토리 (최대 100개, Unknown 제외)
+        self.user_emotion_history: Deque[str] = deque(maxlen=100)
+        self.user_emotion_lock = threading.Lock()
+        self.valid_emotions = {"Anger", "Happiness", "Sadness", "Surprise", "Neutral"}
+        self.latest_user_emotion: str = None
         
     def initialize(self):
         """ROS2 노드 및 Publisher들 초기화"""
@@ -151,6 +157,18 @@ class ROS2PublisherService:
                 10
             )
 
+            # 사용자 감정(표정) 상태 구독 (std_msgs/String)
+            qos_profile_user_emotion = QoSProfile(
+                reliability=ReliabilityPolicy.BEST_EFFORT,
+                depth=10
+            )
+            self.user_emotion_state_subscriber = self.node.create_subscription(
+                String,
+                '/edie8/vision/emotion_state',
+                self._user_emotion_state_callback,
+                qos_profile_user_emotion
+            )
+
             # Laser sensor subscribers
             self.node.create_subscription(
                 Int16MultiArray,
@@ -212,6 +230,7 @@ class ROS2PublisherService:
             print("   - /edie8/llm/output (LLM → Others)")
             print("   - /edie8/emotion/action_index (Emotion, BEST_EFFORT)")
             print("   - /edie8/vision/image_raw (Image Subscriber, BEST_EFFORT)")
+            print("   - /edie8/vision/emotion_state (User Emotion State Subscriber, user_emotion_state)")
             print("   - /edie8/sensor/fsr")
             print("   - /edie8/sensor/front/laser (Front Laser)")
             print("   - /edie8/sensor/bottom/laser_values (Bottom Laser)")
@@ -496,6 +515,41 @@ class ROS2PublisherService:
         """최신 ROI 정보 반환 (dict 또는 None)"""
         with self.roi_lock:
             return self.latest_roi.copy() if self.latest_roi is not None else None
+
+    def _user_emotion_state_callback(self, msg: String):
+        """
+        사용자 감정(표정) 상태 콜백 (user_emotion_state)
+        - data: Anger, Happiness, Sadness, Surprise, Neutral, Unknown
+        - Unknown은 무시
+        - 단순히 최근 100개를 누적하고 최신 감정 저장
+        """
+        try:
+            emotion = msg.data.strip()
+            self.node.get_logger().info(f"[USER_EMOTION_STATE] Received: {emotion}")
+            if emotion not in self.valid_emotions:
+                return
+            with self.user_emotion_lock:
+                self.user_emotion_history.append(emotion)
+                self.latest_user_emotion = emotion
+                self.node.get_logger().info(f"[USER_EMOTION_STATE] emotion={emotion}, history={list(self.user_emotion_history)[-5:]}")
+        except Exception as e:
+            self.node.get_logger().error(f"[USER_EMOTION_STATE] Exception: {e}")
+
+    def get_latest_user_emotion(self):
+        """최신 감정 반환"""
+        with self.user_emotion_lock:
+            return self.latest_user_emotion
+
+    def get_user_emotion_history(self):
+        """감정 히스토리(리스트) 반환"""
+        with self.user_emotion_lock:
+            return list(self.user_emotion_history)
+
+    def clear_user_emotion_history(self):
+        """감정 히스토리 초기화"""
+        with self.user_emotion_lock:
+            self.user_emotion_history.clear()
+            self.latest_user_emotion = None
 
     def get_emotion_percentages(self) -> Dict[str, float]:
         """최근 100개 action_index 기준 8개 감정별 백분율 반환"""

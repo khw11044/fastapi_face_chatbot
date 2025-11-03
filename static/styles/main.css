@@ -90,11 +90,24 @@ body {
     align-items: center;
     position: relative;
 }
+.emotion-left, .emotion-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+.emotion-left {
+    justify-content: flex-start; /* 상단 정렬로 복원 */
+}
+.user-emotion-container {
+    margin-top: 60px; /* 감정 박스와 충분히 떨어뜨림 */
+}
 
 /* 감정 박스 행 (좌우 각각) */
 .emotion-left .user-emotion-box {
     width: 90%;
-    margin-bottom: 18px;
+    margin-bottom: 50px; /* 간격 크게 */
 }
 .emotion-right .edie-emotion-box {
     width: 90%;
@@ -384,4 +397,25 @@ body {
     .camera-container h2 {
         font-size: 1.2em;
     }
+}
+
+/* 사용자 감정 컨테이너 (흰색 배경, 에디 감정 팔각형 컨테이너와 통일) */
+.user-emotion-container {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
+    padding: 18px 16px 14px 16px;
+    margin-bottom: 10px;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 감정별 막대 그래프 간격 넓힘 */
+.user-emotion-bar-row {
+    margin: 14px 0;
 }
