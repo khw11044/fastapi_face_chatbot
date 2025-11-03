@@ -17,7 +17,7 @@ class BatteryService:
         self.MAX_VOLTAGE = 16.8
         
     def voltage_to_percentage(self, voltage: float) -> float:
-        """전압을 백분율로 변환 (12.8V ~ 16.8V → 0% ~ 100%)"""
+        """전압을 백분율로 변환 (10.0V ~ 16.8V → 0% ~ 100%)"""
         percentage = ((voltage - self.MIN_VOLTAGE) / (self.MAX_VOLTAGE - self.MIN_VOLTAGE)) * 100
         return max(0.0, min(100.0, percentage))
     
