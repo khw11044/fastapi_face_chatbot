@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, UInt8, Float64MultiArray, Float32MultiArray, Int16MultiArray, Float32, Bool
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, RegionOfInterest
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 import threading
 import cv2
@@ -78,6 +78,10 @@ class ROS2PublisherService:
         # 최신 감정 action_index
         self.latest_action_index = 0
         self.latest_emotion_lock = threading.Lock()
+
+        # ROI(Closest Human) 관련
+        self.latest_roi = None
+        self.roi_lock = threading.Lock()
         
     def initialize(self):
         """ROS2 노드 및 Publisher들 초기화"""
@@ -139,6 +143,14 @@ class ROS2PublisherService:
                 qos_profile
             )
             
+            # Closest Human ROI subscriber
+            self.closest_human_roi_subscriber = self.node.create_subscription(
+                RegionOfInterest,
+                '/edie8/vision/closest_human_roi',
+                self._closest_human_roi_callback,
+                10
+            )
+
             # Laser sensor subscribers
             self.node.create_subscription(
                 Int16MultiArray,
@@ -465,6 +477,26 @@ class ROS2PublisherService:
         with self.latest_emotion_lock:
             return self.latest_action_index
     
+    def _closest_human_roi_callback(self, msg: RegionOfInterest):
+        """Closest Human ROI 콜백"""
+        try:
+            roi_data = {
+                "x_offset": msg.x_offset,
+                "y_offset": msg.y_offset,
+                "width": msg.width,
+                "height": msg.height,
+                "do_rectify": msg.do_rectify
+            }
+            with self.roi_lock:
+                self.latest_roi = roi_data
+        except Exception as e:
+            print(f"❌ Closest Human ROI callback error: {e}")
+
+    def get_latest_roi(self):
+        """최신 ROI 정보 반환 (dict 또는 None)"""
+        with self.roi_lock:
+            return self.latest_roi.copy() if self.latest_roi is not None else None
+
     def get_emotion_percentages(self) -> Dict[str, float]:
         """최근 100개 action_index 기준 8개 감정별 백분율 반환"""
         with self.emotion_lock:

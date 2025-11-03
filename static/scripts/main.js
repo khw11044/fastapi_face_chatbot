@@ -34,7 +34,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
-    
+
+    // ROI 바운딩 박스용 캔버스 및 WebSocket 초기화
+    initRoiOverlay();
+
     // 배터리 WebSocket 연결
     initBatteryWebSocket();
     
@@ -47,6 +50,109 @@ document.addEventListener('DOMContentLoaded', function() {
     // 녹음 토글 버튼 초기화
     initRecordToggle();
 });
+
+/** ROI 바운딩 박스 오버레이 및 WebSocket 초기화 */
+function initRoiOverlay() {
+    const cameraImg = document.getElementById('camera-stream');
+    if (!cameraImg) {
+        console.warn('카메라 이미지 요소를 찾을 수 없습니다.');
+        return;
+    }
+
+    // 캔버스 생성 및 camera-viewer에 삽입
+    let roiCanvas = document.getElementById('roi-canvas');
+    if (!roiCanvas) {
+        roiCanvas = document.createElement('canvas');
+        roiCanvas.id = 'roi-canvas';
+        roiCanvas.style.position = 'absolute';
+        roiCanvas.style.left = '0';
+        roiCanvas.style.top = '0';
+        roiCanvas.style.pointerEvents = 'none';
+        roiCanvas.style.zIndex = '10';
+        // camera-viewer는 position:relative 여야 함
+        const viewer = cameraImg.closest('.camera-viewer');
+        if (viewer) {
+            viewer.style.position = 'relative';
+            viewer.appendChild(roiCanvas);
+        } else {
+            cameraImg.parentElement.appendChild(roiCanvas);
+        }
+    }
+
+    // 캔버스 크기 동기화 함수
+    function syncCanvasSize() {
+        roiCanvas.width = cameraImg.clientWidth;
+        roiCanvas.height = cameraImg.clientHeight;
+        roiCanvas.style.width = cameraImg.clientWidth + 'px';
+        roiCanvas.style.height = cameraImg.clientHeight + 'px';
+    }
+
+    // 이미지 로드/리사이즈 시 캔버스 크기 맞춤
+    cameraImg.addEventListener('load', syncCanvasSize);
+    window.addEventListener('resize', syncCanvasSize);
+    setTimeout(syncCanvasSize, 500);
+
+    // ROI WebSocket 연결
+    let roiWebSocket = null;
+    function connectRoiWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/camera/ws/roi`;
+        roiWebSocket = new WebSocket(wsUrl);
+
+        roiWebSocket.onopen = () => {
+            console.log('✅ ROI WebSocket connected');
+        };
+
+        roiWebSocket.onmessage = (event) => {
+            const roi = JSON.parse(event.data);
+            drawRoiBox(roi);
+        };
+
+        roiWebSocket.onerror = (error) => {
+            console.error('❌ ROI WebSocket error:', error);
+        };
+
+        roiWebSocket.onclose = () => {
+            console.log('⚠️ ROI WebSocket disconnected. Reconnecting in 5 seconds...');
+            setTimeout(connectRoiWebSocket, 5000);
+        };
+    }
+    connectRoiWebSocket();
+
+    // ROI 박스 그리기
+    function drawRoiBox(roi) {
+        syncCanvasSize();
+        const ctx = roiCanvas.getContext('2d');
+        ctx.clearRect(0, 0, roiCanvas.width, roiCanvas.height);
+
+        if (!roi || !('x_offset' in roi) || !('y_offset' in roi) || !('width' in roi) || !('height' in roi)) {
+            return;
+        }
+
+        // 이미지와 ROI 좌표가 동일 해상도라고 가정
+        const scaleX = roiCanvas.width / cameraImg.naturalWidth;
+        const scaleY = roiCanvas.height / cameraImg.naturalHeight;
+
+        // naturalWidth/Height가 0이면(아직 이미지 로드 전) skip
+        if (!cameraImg.naturalWidth || !cameraImg.naturalHeight) return;
+
+        // 높이 1.25배 확대, y_offset도 위로 보정
+        const newHeight = roi.height * 1.6;
+        const h = newHeight * scaleY;
+        const w = roi.width * scaleX;
+        const x = roi.x_offset * scaleX;
+        const y = (roi.y_offset - (newHeight - roi.height) / 2) * scaleY;
+
+        ctx.save();
+        ctx.strokeStyle = '#ff3b3b';
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.stroke();
+        ctx.restore();
+    }
+}
 
 // 배터리 WebSocket 관리
 let batteryWebSocket = null;

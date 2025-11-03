@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from app.services.ros2_service import ros2_publisher
 import cv2
 import time
 import numpy as np
+import asyncio
 
 router = APIRouter()
 
@@ -42,7 +43,6 @@ def generate_mjpeg_stream():
         # FPS 제어 (약 30 FPS)
         time.sleep(0.033)
 
-
 @router.get("/stream")
 async def camera_stream():
     """
@@ -53,3 +53,21 @@ async def camera_stream():
         generate_mjpeg_stream(),
         media_type="multipart/x-mixed-replace; boundary=frame"
     )
+
+@router.websocket("/ws/roi")
+async def roi_websocket(websocket: WebSocket):
+    """
+    Closest Human ROI 정보를 실시간으로 전송하는 WebSocket 엔드포인트
+    """
+    await websocket.accept()
+    try:
+        while True:
+            roi = ros2_publisher.get_latest_roi()
+            await websocket.send_json(roi if roi is not None else {})
+            await asyncio.sleep(0.033)  # 약 30 FPS
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        print(f"ROI WebSocket error: {e}")
+    finally:
+        await websocket.close()
