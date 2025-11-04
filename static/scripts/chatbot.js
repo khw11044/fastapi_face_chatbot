@@ -291,6 +291,16 @@ class ChatBot {
                 this.chatBox.scrollTop = this.chatBox.scrollHeight;
             };
             messageDiv.appendChild(img);
+
+            // EDIE Emotion 탭 이미지 동기화
+            if (typeof setEdieEmotionImageFromResponse === 'function') {
+                setEdieEmotionImageFromResponse(`[감정이미지]: ${text}`);
+                // EDIE Emotion 탭이 열려 있으면 즉시 갱신
+                const edieTab = document.getElementById('tab-edie');
+                if (edieTab && edieTab.style.display !== 'none' && typeof updateEdieEmotionImage === 'function') {
+                    updateEdieEmotionImage();
+                }
+            }
         } else {
             // 줄바꿈 처리: \n을 실제 줄바꿈으로 변환
             messageDiv.textContent = text;

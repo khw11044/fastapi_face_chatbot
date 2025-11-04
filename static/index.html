@@ -93,6 +93,9 @@
                     </div>
                     <div class="tab-content" id="tab-edie" style="display:none;">
                         <!-- EDIE 감정: 흰색 빈 배경 (16:9 비율) -->
+                        <div id="edie-emotion-image-box" style="display:flex; justify-content:center; align-items:center; height:100%;">
+                            <img id="edie-emotion-image" src="/static/face/expressionless.png" style="width:200px; height:200px; object-fit:contain;">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -215,14 +218,42 @@
     <script src="/static/scripts/chatbot.js"></script>
     <script src="/static/scripts/main.js"></script>
     <script>
+        // 감정 이미지 경로를 저장할 전역 변수
+        let lastEdieEmotionImage = "/static/face/expressionless.png";
+
+        // EDIE Emotion 탭 이미지 동기화 함수
+        function updateEdieEmotionImage() {
+            const img = document.getElementById('edie-emotion-image');
+            if (img) {
+                img.src = lastEdieEmotionImage;
+            }
+        }
+
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 document.getElementById('tab-camera').style.display = this.dataset.tab === 'camera' ? '' : 'none';
                 document.getElementById('tab-edie').style.display = this.dataset.tab === 'edie' ? '' : 'none';
+                if (this.dataset.tab === 'edie') {
+                    updateEdieEmotionImage();
+                }
             });
         });
+
+        // 채팅 응답에서 감정 이미지 경로 파싱(예시: [감정이미지]: /static/face/xxx.png)
+        function setEdieEmotionImageFromResponse(responseText) {
+            const match = responseText.match(/\[감정이미지\]:\s*(\/static\/face\/[a-zA-Z0-9_\-\.]+\.png)/);
+            if (match) {
+                lastEdieEmotionImage = match[1];
+            }
+        }
+
+        // 예시: 채팅 응답 처리 후 아래 함수 호출 필요
+        // setEdieEmotionImageFromResponse(responseText);
+
+        // 페이지 로드시 기본 이미지 동기화
+        document.addEventListener('DOMContentLoaded', updateEdieEmotionImage);
     </script>
 </body>
 </html>
