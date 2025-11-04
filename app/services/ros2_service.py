@@ -525,7 +525,7 @@ class ROS2PublisherService:
         """
         try:
             emotion = msg.data.strip()
-            self.node.get_logger().info(f"[USER_EMOTION_STATE] Received: {emotion}")
+            # self.node.get_logger().info(f"[USER_EMOTION_STATE] Received: {emotion}")
             if emotion not in self.valid_emotions:
                 return
             with self.user_emotion_lock:
