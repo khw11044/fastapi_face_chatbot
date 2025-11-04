@@ -89,6 +89,7 @@ body {
     flex-direction: column;
     align-items: center;
     position: relative;
+    padding: 0 24px; 
 }
 .emotion-left, .emotion-right {
     flex: 1;
@@ -417,5 +418,5 @@ body {
 
 /* 감정별 막대 그래프 간격 넓힘 */
 .user-emotion-bar-row {
-    margin: 14px 0;
+    margin: 14px 0 !important;
 }
