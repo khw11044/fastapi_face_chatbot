@@ -3,10 +3,12 @@
 # 가상 환경 준비 
 
 ```
-conda create -n fastapi python=3.10 -y
+conda create -n fastapi python=3.12 -y
 
 conda activate fastapi
 ```
+
+또는 
 
 
 ```
@@ -41,7 +43,7 @@ sudo apt-get install fonts-nanum
 
 ```
 source venv/bin/activate
-python run.py
+c
 ```
 
 `http://localhost:8000/`
